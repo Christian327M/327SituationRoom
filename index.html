@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="description" content="327 Media Situation Room — The most powerful American intelligence dashboard. Live maps, news, markets, global cams, and more."/>
+<meta name="theme-color" content="#060810"/>
+<title>327 Media | Situation Room</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;600;700;800&family=Barlow:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#060810;--bg2:#08090f;--bg3:#0c0e18;--panel:#0a0c16;
+  --bdr:#161d2e;--bdr2:#1f2a40;
+  --red:#cc0000;--rb:#ff2020;--rd:#6b0000;
+  --amber:#d97706;--ad:#7a4500;
+  --green:#16a34a;--gb:#22c55e;
+  --blue:#1d4ed8;--bb:#3b82f6;
+  --cyan:#06b6d4;--cd:#0e7490;
+  --text:#b8cce0;--dim:#4a6080;--muted:#1e3050;--white:#eef4fb;
+  --mono:'Share Tech Mono',monospace;
+  --disp:'Bebas Neue',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;
+  --body:'Barlow',sans-serif;
+  --th:22px;--hh:50px;--tb:33px;--ms:30px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:14px;line-height:1.5;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;border:none;background:none;font:inherit;color:inherit;}
+iframe{display:block;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--rd);}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:9999;}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes pulsR{0%,100%{box-shadow:0 0 0 0 rgba(204,0,0,.5)}60%{box-shadow:0 0 0 8px rgba(204,0,0,0)}}
+@keyframes pulsA{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.5)}60%{box-shadow:0 0 0 8px rgba(217,119,6,0)}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes dragover{0%,100%{border-color:var(--red)}50%{border-color:var(--rb)}}
+
+/* ALERT BAR */
+#alert-bar{background:var(--red);color:#fff;font-family:var(--mono);font-size:10px;letter-spacing:.07em;overflow:hidden;white-space:nowrap;height:var(--th);display:flex;align-items:center;position:sticky;top:0;z-index:1200;border-bottom:1px solid var(--rb);}
+.ab-pfx{flex-shrink:0;background:rgba(0,0,0,.3);padding:0 12px;height:100%;display:flex;align-items:center;gap:6px;font-weight:700;letter-spacing:.15em;border-right:1px solid rgba(255,255,255,.2);}
+.ab-dot{width:6px;height:6px;background:#fff;border-radius:50%;animation:blink .9s step-end infinite;}
+.t-wrap{display:inline-flex;animation:ticker 100s linear infinite;}
+.t-wrap span{padding:0 44px;}
+.t-wrap span::before{content:'◆ ';opacity:.55;}
+
+/* HEADER */
+#hdr{background:rgba(6,8,16,.98);border-bottom:2px solid var(--red);position:sticky;top:var(--th);z-index:1100;height:var(--hh);}
+.hdr-in{max-width:100%;padding:0 14px;height:100%;display:flex;align-items:center;gap:10px;}
+.logo{display:flex;align-items:center;gap:8px;flex-shrink:0;text-decoration:none;}
+.lb{background:var(--red);color:#fff;font-family:var(--disp);font-size:20px;padding:3px 10px 1px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%);}
+.lt{line-height:1;}
+.lt-name{font-family:var(--disp);font-size:15px;letter-spacing:.1em;color:var(--white);}
+.lt-sub{font-family:var(--mono);font-size:7px;letter-spacing:.18em;color:var(--red);}
+#nav{display:flex;align-items:center;flex:1;overflow-x:auto;scrollbar-width:none;}
+#nav::-webkit-scrollbar{display:none;}
+.nb{font-family:var(--mono);font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);padding:5px 9px;border-bottom:2px solid transparent;white-space:nowrap;transition:color .14s,border-color .14s;flex-shrink:0;cursor:pointer;}
+.nb:hover,.nb.on{color:var(--white);border-bottom-color:var(--red);}
+.ns{width:1px;height:16px;background:var(--bdr);flex-shrink:0;margin:0 2px;}
+.hdr-r{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.live-pill{display:flex;align-items:center;gap:4px;background:rgba(204,0,0,.1);border:1px solid rgba(204,0,0,.3);padding:2px 8px;font-family:var(--mono);font-size:8px;letter-spacing:.14em;}
+.lp-d{width:5px;height:5px;background:var(--rb);border-radius:50%;animation:pulsR 1.4s ease infinite;}
+.lp-d+span{color:var(--rb);}
+#clock{font-family:var(--mono);font-size:9px;color:var(--dim);white-space:nowrap;}
+.customize-btn{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--bdr2);padding:4px 10px;color:var(--dim);transition:all .15s;cursor:pointer;}
+.customize-btn:hover{color:var(--white);border-color:var(--red);background:rgba(204,0,0,.08);}
+.customize-btn.on{color:var(--rb);border-color:var(--red);background:rgba(204,0,0,.1);}
+
+/* THREAT */
+#threat{background:var(--bg2);border-bottom:1px solid var(--bdr);padding:4px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;height:var(--tb);}
+.tl-lbl{font-family:var(--mono);font-size:8px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;flex-shrink:0;}
+.tls{display:flex;gap:2px;}
+.tl{font-family:var(--cond);font-size:10px;font-weight:800;letter-spacing:.1em;padding:2px 8px;text-transform:uppercase;opacity:.22;border:1px solid transparent;}
+.tl.on{opacity:1;border-color:currentColor;}
+.tl-lo{color:var(--gb);}.tl-gu{color:#38bdf8;}.tl-el{color:var(--amber);}.tl-hi{color:#ef4444;}.tl-sv{color:var(--rb);}
+.tl-el.on{animation:pulsA 2s ease infinite;}
+.t-msg{font-family:var(--mono);font-size:8px;color:var(--amber);margin-left:auto;white-space:nowrap;}
+
+/* MARKET STRIP */
+#mstrip{background:var(--bg3);border-bottom:1px solid var(--bdr);display:flex;overflow-x:auto;scrollbar-width:none;height:var(--ms);}
+#mstrip::-webkit-scrollbar{display:none;}
+.mc{display:flex;flex-direction:column;justify-content:center;padding:0 14px;border-right:1px solid var(--bdr);flex-shrink:0;min-width:100px;}
+.mc-n{font-family:var(--mono);font-size:7px;letter-spacing:.13em;color:var(--muted);text-transform:uppercase;}
+.mc-v{font-family:var(--cond);font-size:14px;font-weight:700;color:var(--white);line-height:1;}
+.mc-c{font-family:var(--mono);font-size:8px;}
+.up{color:var(--gb);}.dn{color:var(--rb);}.fl{color:var(--dim);}
+
+/* MAIN APP LAYOUT */
+#app{display:flex;height:calc(100vh - var(--th) - var(--hh) - var(--tb) - var(--ms));min-height:480px;}
+
+/* SIDEBAR */
+#sb{width:285px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;}
+.stabs{display:flex;border-bottom:1px solid var(--bdr);flex-shrink:0;}
+.stab{flex:1;font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;padding:6px 3px;text-align:center;color:var(--dim);border-bottom:2px solid transparent;transition:color .14s,border-color .14s;cursor:pointer;}
+.stab.on{color:var(--rb);border-bottom-color:var(--red);}
+.sp{flex:1;overflow-y:auto;display:none;}
+.sp.on{display:block;}
+.shdr{font-family:var(--mono);font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:6px 11px 3px;border-bottom:1px solid var(--bdr);background:var(--panel);}
+
+/* NEWS */
+.ni{padding:8px 10px;border-bottom:1px solid var(--bdr);animation:fadeUp .3s ease both;}
+.ni:hover{background:rgba(255,255,255,.02);}
+.nm{display:flex;align-items:center;gap:4px;margin-bottom:2px;}
+.nt{font-family:var(--mono);font-size:7px;letter-spacing:.09em;text-transform:uppercase;padding:1px 4px;border:1px solid;}
+.tr{color:var(--rb);border-color:var(--rd);background:rgba(204,0,0,.07);}
+.ta{color:var(--amber);border-color:var(--ad);background:rgba(217,119,6,.07);}
+.tb{color:var(--bb);border-color:var(--blue);background:rgba(59,130,246,.07);}
+.tg{color:var(--dim);border-color:var(--bdr2);}
+.ntime{font-family:var(--mono);font-size:7px;color:var(--muted);margin-left:auto;}
+.nh{font-family:var(--cond);font-size:12px;font-weight:600;color:var(--white);line-height:1.2;display:block;transition:color .12s;}
+.nh:hover{color:var(--rb);}
+.nsrc{font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:1px;}
+
+/* ALERTS */
+.ai{padding:7px 10px;border-bottom:1px solid var(--bdr);display:flex;align-items:flex-start;gap:7px;}
+.aid{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.d-r{background:var(--rb);animation:pulsR 1.4s ease infinite;}
+.d-a{background:var(--amber);animation:pulsA 1.8s ease infinite;}
+.d-b{background:var(--bb);}
+.d-c{background:var(--cyan);}
+.ai-t{font-family:var(--cond);font-size:11.5px;font-weight:700;color:var(--white);line-height:1.2;}
+.ai-m{font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:1px;}
+
+/* INTEL */
+.psec{border-bottom:1px solid var(--bdr);padding:8px 10px;}
+.pst{font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.psd{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--bdr);font-family:var(--cond);font-size:11px;}
+.ir:last-child{border-bottom:none;}
+.ir-l{color:var(--dim);font-weight:600;}
+.ir-v{font-family:var(--mono);font-size:8.5px;color:var(--white);}
+.vr{color:var(--rb);}.va{color:var(--amber);}.vg{color:var(--gb);}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr);margin:8px 10px;}
+.sc{background:var(--panel);padding:8px;text-align:center;}
+.sc-v{font-family:var(--disp);font-size:20px;color:var(--white);line-height:1;}
+.sc-l{font-family:var(--mono);font-size:6.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:2px;}
+.sc-v.r{color:var(--rb);}.sc-v.a{color:var(--amber);}.sc-v.g{color:var(--gb);}.sc-v.c{color:var(--cyan);}
+
+/* QUAKES */
+.qi{display:flex;align-items:center;gap:7px;padding:6px 10px;border-bottom:1px solid var(--bdr);}
+.qm{font-family:var(--disp);font-size:18px;width:38px;flex-shrink:0;text-align:center;line-height:1;}
+.qm.s{color:var(--gb);}.qm.m{color:var(--amber);}.qm.l{color:var(--rb);}
+.ql{font-family:var(--cond);font-size:11px;font-weight:600;color:var(--white);line-height:1.2;}
+.qmt{font-family:var(--mono);font-size:7px;color:var(--muted);}
+
+/* CENTER */
+#center{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+#map-tabs{display:flex;background:rgba(6,8,16,.96);border-bottom:1px solid var(--bdr);padding:0 4px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+#map-tabs::-webkit-scrollbar{display:none;}
+.mtab{font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;color:var(--dim);border-bottom:2px solid transparent;cursor:pointer;transition:color .14s,border-color .14s;white-space:nowrap;flex-shrink:0;}
+.mtab:hover{color:var(--white);}
+.mtab.on{color:var(--rb);border-bottom-color:var(--red);}
+#map-area{flex:1;position:relative;background:#04060c;overflow:hidden;}
+.mf{width:100%;height:100%;border:none;display:none;position:absolute;inset:0;}
+.mf.on{display:block;}
+#mlbl{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:7px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);background:rgba(6,8,16,.88);padding:3px 10px;border:1px solid var(--bdr);pointer-events:none;display:flex;align-items:center;gap:5px;white-space:nowrap;}
+#mlbl .d{width:4px;height:4px;background:var(--rb);border-radius:50%;animation:blink .9s step-end infinite;}
+#bstrip{background:var(--bg2);border-top:1px solid var(--bdr);display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+#bstrip::-webkit-scrollbar{display:none;}
+.bc{display:flex;flex-direction:column;padding:6px 12px;border-right:1px solid var(--bdr);flex-shrink:0;min-width:120px;cursor:pointer;transition:background .14s;}
+.bc:hover{background:rgba(255,255,255,.03);}
+.bc-l{font-family:var(--mono);font-size:7px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:1px;}
+.bc-v{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--white);}
+.bc-s{font-family:var(--mono);font-size:7px;color:var(--muted);}
+.bc-v.r{color:var(--rb);}.bc-v.a{color:var(--amber);}.bc-v.g{color:var(--gb);}.bc-v.c{color:var(--cyan);}
+
+/* RIGHT PANEL */
+#rp{width:300px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--bdr);display:flex;flex-direction:column;overflow:hidden;}
+.rpt{display:flex;border-bottom:1px solid var(--bdr);flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.rpt::-webkit-scrollbar{display:none;}
+.rt{flex-shrink:0;font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;color:var(--dim);border-bottom:2px solid transparent;cursor:pointer;transition:color .14s,border-color .14s;}
+.rt.on{color:var(--rb);border-bottom-color:var(--red);}
+.rpp{flex:1;overflow-y:auto;display:none;}
+.rpp.on{display:block;}
+.whl{display:flex;align-items:center;gap:9px;padding:7px 10px;border-bottom:1px solid var(--bdr);transition:background .14s;}
+.whl:hover{background:rgba(204,0,0,.04);}
+.whl-ic{font-size:16px;flex-shrink:0;opacity:.85;}
+.whl-lb{font-family:var(--mono);font-size:7px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim);}
+.whl-t{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--white);}
+.srca{display:block;font-family:var(--cond);font-size:12px;font-weight:600;color:var(--dim);padding:3px 7px;border-left:2px solid transparent;transition:color .12s,border-color .12s,background .12s;}
+.srca:hover{color:var(--white);background:rgba(255,255,255,.02);}
+.srcblk{padding:8px 10px;border-bottom:1px solid var(--bdr);}
+.srcblk-t{font-family:var(--mono);font-size:7px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+
+/* ═══════════════════════════════════════════════════════
+   FULL PAGE — DRAGGABLE SECTION SYSTEM
+═══════════════════════════════════════════════════════ */
+#fullpage{background:var(--bg);padding-bottom:40px;}
+
+/* CUSTOMIZE MODE OVERLAY */
+#customize-bar{
+  display:none;position:sticky;top:calc(var(--th) + var(--hh));z-index:1050;
+  background:rgba(204,0,0,.12);border:1px solid var(--red);border-left:none;border-right:none;
+  padding:8px 18px;font-family:var(--mono);font-size:9px;letter-spacing:.12em;
+  color:var(--rb);text-transform:uppercase;
+  display:none;align-items:center;gap:16px;
+}
+#customize-bar.on{display:flex;}
+.cb-msg{flex:1;}
+.cb-done{background:var(--red);color:#fff;padding:4px 16px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;border:none;transition:background .15s;}
+.cb-done:hover{background:var(--rb);}
+.cb-reset{border:1px solid var(--bdr2);color:var(--dim);padding:4px 12px;font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.cb-reset:hover{color:var(--white);border-color:var(--white);}
+
+/* DRAGGABLE SECTION */
+.drag-section{
+  position:relative;border-top:1px solid var(--bdr);
+  transition:opacity .2s;
+}
+.drag-section.dragging{opacity:.4;}
+.drag-section.drag-over{border-top:2px solid var(--red);animation:dragover .5s ease infinite;}
+.drag-section.minimized .sec-body{display:none;}
+
+/* SECTION CONTROLS */
+.sec-bar{
+  display:flex;align-items:center;
+  background:var(--panel);border-bottom:1px solid var(--bdr);
+  padding:0 18px;height:36px;gap:10px;
+  cursor:default;
+}
+.sec-bar.draggable-handle{cursor:grab;}
+.sec-bar.draggable-handle:active{cursor:grabbing;}
+.sec-eyebrow{font-family:var(--mono);font-size:7.5px;letter-spacing:.2em;color:var(--red);text-transform:uppercase;flex-shrink:0;}
+.sec-title{font-family:var(--disp);font-size:22px;letter-spacing:.04em;color:var(--white);line-height:1;flex:1;}
+.sec-controls{display:flex;align-items:center;gap:4px;margin-left:auto;}
+.sec-ctrl-btn{
+  width:26px;height:26px;border:1px solid var(--bdr2);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:12px;color:var(--dim);
+  cursor:pointer;transition:all .14s;flex-shrink:0;
+}
+.sec-ctrl-btn:hover{color:var(--white);border-color:var(--white);}
+.drag-handle-icon{font-family:var(--mono);font-size:14px;color:var(--muted);cursor:grab;padding:0 4px;display:none;}
+.customize-mode .drag-handle-icon{display:flex;align-items:center;}
+.customize-mode .sec-bar{cursor:grab;}
+.drag-ghost{position:fixed;pointer-events:none;z-index:5000;opacity:.75;background:var(--panel);border:2px solid var(--red);font-family:var(--disp);font-size:16px;color:var(--white);padding:8px 18px;letter-spacing:.06em;}
+
+/* SECTION BODY */
+.sec-body{padding:0;}
+.fps{max-width:1600px;margin:0 auto;padding:20px 18px;}
+.divlbl{font-family:var(--mono);font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:5px 10px;background:var(--panel);border-bottom:1px solid var(--bdr);}
+
+/* STREAM/CAM GRID — STANDARD */
+.sgrd{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--bdr);}
+.scl{background:var(--bg);position:relative;aspect-ratio:16/9;overflow:hidden;cursor:pointer;}
+.scl iframe{width:100%;height:100%;border:none;pointer-events:none;}
+.scl:hover iframe{pointer-events:auto;}
+.slbl{position:absolute;bottom:0;left:0;right:0;font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;background:linear-gradient(to top,rgba(6,8,16,.95) 60%,transparent);color:var(--dim);padding:18px 6px 4px;pointer-events:none;display:flex;align-items:flex-end;justify-content:space-between;}
+.slbl-r{font-size:6.5px;opacity:.6;}
+.ld{width:5px;height:5px;background:var(--rb);border-radius:50%;display:inline-block;margin-right:3px;animation:blink .9s step-end infinite;vertical-align:middle;}
+
+/* CAM CATEGORY TABS */
+.cam-tabs{display:flex;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--bdr);background:var(--bg3);}
+.cam-tabs::-webkit-scrollbar{display:none;}
+.cam-tab{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:7px 14px;color:var(--dim);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:color .13s,border-color .13s;}
+.cam-tab.on{color:var(--rb);border-bottom-color:var(--red);}
+.cam-tab:hover{color:var(--white);}
+.cam-panel{display:none;}
+.cam-panel.on{display:block;}
+
+/* WH */
+.whg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--bdr);}
+.whc{background:var(--panel);padding:16px;display:flex;align-items:flex-start;gap:11px;transition:background .14s;}
+.whc:hover{background:rgba(204,0,0,.04);}
+.whc-ic{font-size:18px;flex-shrink:0;}
+.whc-lb{font-family:var(--mono);font-size:7px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin-bottom:2px;}
+.whc-t{font-family:var(--cond);font-size:14px;font-weight:700;color:var(--white);line-height:1.2;}
+.whc-d{font-size:10.5px;color:var(--dim);margin-top:2px;line-height:1.5;}
+
+/* MARKETS */
+.mkts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:700px){.mkts{grid-template-columns:1fr;}}
+.chw{height:270px;background:var(--panel);}
+.chw iframe{width:100%;height:100%;border:none;}
+.hmw{height:320px;background:var(--panel);}
+.hmw iframe{width:100%;height:100%;border:none;}
+.tkw{height:76px;}
+.tkw iframe{width:100%;height:100%;border:none;}
+
+/* MEDIA GRID */
+.medg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;}
+.medc{background:var(--panel);border:1px solid var(--bdr);padding:13px;}
+.medc-t{font-family:var(--mono);font-size:7px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--bdr);}
+
+/* MODAL */
+#modal{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.93);align-items:center;justify-content:center;}
+#modal.on{display:flex;}
+#mi{position:relative;width:92vw;max-width:1280px;height:76vh;background:var(--panel);border:1px solid var(--bdr);}
+#mi iframe{width:100%;height:100%;border:none;}
+#mc{position:absolute;top:-32px;right:0;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;color:var(--dim);cursor:pointer;padding:3px 8px;border:1px solid var(--bdr);}
+#mc:hover{color:var(--white);}
+#mi-title{position:absolute;top:-32px;left:0;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--white);padding:3px 0;}
+
+/* FOOTER */
+#footer{background:var(--bg2);border-top:2px solid var(--red);padding:24px 18px 16px;}
+.footer-in{max-width:1600px;margin:0 auto;}
+.ftg{display:grid;grid-template-columns:210px 1fr 1fr 1fr;gap:24px;padding-bottom:16px;border-bottom:1px solid var(--bdr);margin-bottom:12px;}
+@media(max-width:800px){.ftg{grid-template-columns:1fr 1fr;}}
+.fbrand p{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.6;}
+.ftcol-t{font-family:var(--mono);font-size:7px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);margin-bottom:8px;}
+.ftcol a{display:block;font-family:var(--cond);font-size:12px;color:var(--dim);padding:2px 0;transition:color .12s;}
+.ftcol a:hover{color:var(--white);}
+.ftbot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.ftcopy{font-family:var(--mono);font-size:8px;color:var(--muted);}
+.ftdisc{font-size:9.5px;color:var(--muted);max-width:560px;text-align:right;}
+
+/* RESPONSIVE */
+@media(max-width:1200px){#sb{width:250px;}#rp{width:265px;}}
+@media(max-width:960px){#sb{display:none;}#rp{width:235px;}}
+@media(max-width:640px){#app{flex-direction:column;height:auto;}#rp{width:100%;height:320px;}#center{min-height:280px;}#map-area{min-height:260px;}}
+</style>
+</head>
+<body>
+
+<!-- MODAL -->
+<div id="modal" onclick="if(event.target===this)closeMod()">
+  <div id="mi">
+    <div id="mi-title"></div>
+    <div id="mc" onclick="closeMod()">✕ CLOSE</div>
+    <iframe id="modal-frame" src="" allowfullscreen allow="autoplay;encrypted-media"></iframe>
+  </div>
+</div>
+
+<!-- ALERT TICKER -->
+<div id="alert-bar">
+  <div class="ab-pfx"><span class="ab-dot"></span>LIVE</div>
+  <div class="t-wrap">
+    <span>327 MEDIA SITUATION ROOM — ALL SYSTEMS ACTIVE</span>
+    <span>NATIONAL THREAT LEVEL: ELEVATED</span>
+    <span>U.S. MARKETS LIVE — DOW · S&amp;P · NASDAQ · BTC</span>
+    <span>WHITE HOUSE COVERAGE ACTIVE</span>
+    <span>SOUTHERN BORDER: CBP OPERATIONS ONGOING</span>
+    <span>CONGRESS: IN SESSION</span>
+    <span>GEOPOLITICAL: TAIWAN · MIDDLE EAST · UKRAINE — WATCH</span>
+    <span>EARTHQUAKE MONITOR: USGS LIVE</span>
+    <span>LIVE CAMS: 40+ CITIES AND COUNTRIES</span>
+    <span>NATIONAL DEBT: $36.2 TRILLION AND RISING</span>
+    <span>LIVE TV: FOX · CNN · BLOOMBERG · SKY · AL JAZEERA</span>
+    <span>327 MEDIA SITUATION ROOM — ALL SYSTEMS ACTIVE</span>
+    <span>NATIONAL THREAT LEVEL: ELEVATED</span>
+    <span>U.S. MARKETS LIVE — DOW · S&amp;P · NASDAQ · BTC</span>
+    <span>WHITE HOUSE COVERAGE ACTIVE</span>
+    <span>SOUTHERN BORDER: CBP OPERATIONS ONGOING</span>
+    <span>CONGRESS: IN SESSION</span>
+    <span>GEOPOLITICAL: TAIWAN · MIDDLE EAST · UKRAINE — WATCH</span>
+    <span>EARTHQUAKE MONITOR: USGS LIVE</span>
+    <span>LIVE CAMS: 40+ CITIES AND COUNTRIES</span>
+    <span>NATIONAL DEBT: $36.2 TRILLION AND RISING</span>
+    <span>LIVE TV: FOX · CNN · BLOOMBERG · SKY · AL JAZEERA</span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header id="hdr">
+  <div class="hdr-in">
+    <a href="#" class="logo">
+      <div class="lb">327</div>
+      <div class="lt"><div class="lt-name">SITUATION ROOM</div><div class="lt-sub">Powered by 327 Media</div></div>
+    </a>
+    <nav id="nav">
+      <span class="nb on" onclick="scrollTo(0,0)">Overview</span>
+      <div class="ns"></div>
+      <span class="nb" onclick="sw('usmap')">🗺 Map</span>
+      <span class="nb" onclick="sw('flights')">✈ Flights</span>
+      <span class="nb" onclick="sw('ships')">🚢 Ships</span>
+      <span class="nb" onclick="sw('weather')">🌩 Radar</span>
+      <span class="nb" onclick="sw('fires')">🔥 Fires</span>
+      <span class="nb" onclick="sw('quakes')">📡 Seismic</span>
+      <span class="nb" onclick="sw('wind')">💨 Wind</span>
+      <span class="nb" onclick="sw('hurricanes')">🌀 Hurr.</span>
+      <div class="ns"></div>
+      <a class="nb" href="#sec-tv">Live TV</a>
+      <a class="nb" href="#sec-cams">Webcams</a>
+      <a class="nb" href="#sec-wh">White House</a>
+      <a class="nb" href="#sec-mkts">Markets</a>
+      <a class="nb" href="#sec-media">Media</a>
+    </nav>
+    <div class="hdr-r">
+      <button class="customize-btn" id="cust-btn" onclick="toggleCustomize()">⠿ Customize</button>
+      <div class="live-pill"><span class="lp-d"></span><span>LIVE</span></div>
+      <div id="clock">--:--:-- ET</div>
+    </div>
+  </div>
+</header>
+
+<!-- THREAT -->
+<div id="threat">
+  <span class="tl-lbl">Threat Level</span>
+  <div class="tls">
+    <div class="tl tl-lo">Low</div>
+    <div class="tl tl-gu">Guarded</div>
+    <div class="tl tl-el on">Elevated</div>
+    <div class="tl tl-hi">High</div>
+    <div class="tl tl-sv">Severe</div>
+  </div>
+  <span class="t-msg">⚠ ELEVATED — Border active · Session ongoing · Geopolitical watch</span>
+</div>
+
+<!-- MARKET STRIP -->
+<div id="mstrip">
+  <div class="mc"><span class="mc-n">DOW</span><span class="mc-v" id="m-dow">—</span><span class="mc-c fl" id="m-dow-c">—</span></div>
+  <div class="mc"><span class="mc-n">S&amp;P 500</span><span class="mc-v" id="m-sp">—</span><span class="mc-c fl" id="m-sp-c">—</span></div>
+  <div class="mc"><span class="mc-n">NASDAQ</span><span class="mc-v" id="m-nq">—</span><span class="mc-c fl" id="m-nq-c">—</span></div>
+  <div class="mc"><span class="mc-n">BTC</span><span class="mc-v" id="m-btc">—</span><span class="mc-c fl" id="m-btc-c">—</span></div>
+  <div class="mc"><span class="mc-n">ETH</span><span class="mc-v" id="m-eth">—</span><span class="mc-c fl" id="m-eth-c">—</span></div>
+  <div class="mc"><span class="mc-n">OIL</span><span class="mc-v" id="m-oil">—</span><span class="mc-c fl" id="m-oil-c">—</span></div>
+  <div class="mc"><span class="mc-n">GOLD</span><span class="mc-v" id="m-gold">—</span><span class="mc-c fl" id="m-gold-c">—</span></div>
+  <div class="mc"><span class="mc-n">10Y YLD</span><span class="mc-v" id="m-10y">—</span><span class="mc-c fl" id="m-10y-c">—</span></div>
+  <div class="mc"><span class="mc-n">EUR/USD</span><span class="mc-v" id="m-fx">—</span><span class="mc-c fl" id="m-fx-c">—</span></div>
+  <div class="mc" style="border-right:none"><span class="mc-n">NAT GAS</span><span class="mc-v" id="m-gas">—</span><span class="mc-c fl" id="m-gas-c">—</span></div>
+</div>
+
+<!-- ═══ MAIN APP ═════════════════════════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sb">
+    <div class="stabs">
+      <div class="stab on" onclick="swtab('feed')">News</div>
+      <div class="stab" onclick="swtab('alerts')">Alerts</div>
+      <div class="stab" onclick="swtab('quakes')">Seismic</div>
+      <div class="stab" onclick="swtab('intel')">Intel</div>
+    </div>
+    <div class="sp on" id="sp-feed">
+      <div class="shdr">🇺🇸 U.S. &amp; Political Headlines</div>
+      <div id="nf-main"><div style="padding:14px;font-family:var(--mono);font-size:8.5px;color:var(--muted);">Loading…</div></div>
+      <div class="shdr">⚡ Breaking / Security</div>
+      <div id="nf-sec"><div style="padding:14px;font-family:var(--mono);font-size:8.5px;color:var(--muted);">Loading…</div></div>
+    </div>
+    <div class="sp" id="sp-alerts">
+      <div class="shdr">🔴 Critical</div>
+      <div class="ai"><div class="aid d-r"></div><div><div class="ai-t">Southern Border — CBP Active</div><div class="ai-m">DHS · Southwest · Ongoing</div></div></div>
+      <div class="ai"><div class="aid d-r"></div><div><div class="ai-t">China Espionage — Indictments Filed</div><div class="ai-m">DOJ · 3 nationals charged</div></div></div>
+      <div class="ai"><div class="aid d-r"></div><div><div class="ai-t">Fentanyl — Multi-State DEA Operation</div><div class="ai-m">DEA · Southwest border</div></div></div>
+      <div class="shdr">⚠ Watch</div>
+      <div class="ai"><div class="aid d-a"></div><div><div class="ai-t">Taiwan Strait — PLA Naval Exercises</div><div class="ai-m">INDOPACOM · Carrier group in region</div></div></div>
+      <div class="ai"><div class="aid d-a"></div><div><div class="ai-t">FOMC Rate Decision — Approaching</div><div class="ai-m">Federal Reserve · Watch</div></div></div>
+      <div class="ai"><div class="aid d-a"></div><div><div class="ai-t">CISA — Infrastructure Advisory</div><div class="ai-m">Cybersecurity · Patch immediately</div></div></div>
+      <div class="ai"><div class="aid d-b"></div><div><div class="ai-t">Congress — Defense Appropriations Vote</div><div class="ai-m">Senate · FY2027 markup</div></div></div>
+      <div class="ai"><div class="aid d-b"></div><div><div class="ai-t">NATO Article 4 — Baltic Consultation</div><div class="ai-m">Brussels · U.S. response pending</div></div></div>
+      <div class="shdr">🌐 Environmental</div>
+      <div class="ai"><div class="aid d-c"></div><div><div class="ai-t">Hurricane Season — Above Normal</div><div class="ai-m">NOAA · Gulf Coast · June–Nov</div></div></div>
+      <div class="ai"><div class="aid d-c"></div><div><div class="ai-t">Wildfire Risk — CA, TX, CO: Extreme</div><div class="ai-m">NIFC · Red flag warnings active</div></div></div>
+    </div>
+    <div class="sp" id="sp-quakes">
+      <div class="shdr">📡 USGS — U.S. Earthquakes</div>
+      <div id="qlist"><div style="padding:14px;font-family:var(--mono);font-size:8.5px;color:var(--muted);">Loading…</div></div>
+    </div>
+    <div class="sp" id="sp-intel">
+      <div class="sgrid" style="margin-bottom:0;">
+        <div class="sc"><div class="sc-v r">ELEVATED</div><div class="sc-l">Threat</div></div>
+        <div class="sc"><div class="sc-v a">$36.2T</div><div class="sc-l">Nat. Debt</div></div>
+        <div class="sc"><div class="sc-v g">STABLE</div><div class="sc-l">Grid</div></div>
+        <div class="sc"><div class="sc-v c">12</div><div class="sc-l">Watch Zones</div></div>
+      </div>
+      <div class="psec">
+        <div class="pst"><span class="psd d-r"></span>Border</div>
+        <div class="ir"><span class="ir-l">CBP Status</span><span class="ir-v vr">ACTIVE</span></div>
+        <div class="ir"><span class="ir-l">Sector</span><span class="ir-v">Southwest</span></div>
+      </div>
+      <div class="psec">
+        <div class="pst"><span class="psd d-a"></span>Geopolitical</div>
+        <div class="ir"><span class="ir-l">Taiwan Strait</span><span class="ir-v va">WATCH</span></div>
+        <div class="ir"><span class="ir-l">Middle East</span><span class="ir-v va">WATCH</span></div>
+        <div class="ir"><span class="ir-l">Ukraine</span><span class="ir-v va">ONGOING</span></div>
+        <div class="ir"><span class="ir-l">North Korea</span><span class="ir-v vg">MONITOR</span></div>
+      </div>
+      <div class="psec">
+        <div class="pst"><span class="psd d-b"></span>Domestic</div>
+        <div class="ir"><span class="ir-l">Congress</span><span class="ir-v">IN SESSION</span></div>
+        <div class="ir"><span class="ir-l">SCOTUS</span><span class="ir-v">TERM ACTIVE</span></div>
+        <div class="ir"><span class="ir-l">Grid</span><span class="ir-v vg">STABLE</span></div>
+      </div>
+      <div class="psec">
+        <div class="pst"><span class="psd d-c"></span>Economics</div>
+        <div class="ir"><span class="ir-l">CPI</span><span class="ir-v va">3.4%</span></div>
+        <div class="ir"><span class="ir-l">Unemployment</span><span class="ir-v vg">3.9%</span></div>
+        <div class="ir"><span class="ir-l">Fed Rate</span><span class="ir-v">4.25–4.50%</span></div>
+        <div class="ir"><span class="ir-l">GDP Growth</span><span class="ir-v vg">2.1%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER MAP -->
+  <div id="center">
+    <div id="map-tabs">
+      <div class="mtab on" onclick="sw('usmap')">🗺 U.S.</div>
+      <div class="mtab" onclick="sw('flights')">✈ Flights</div>
+      <div class="mtab" onclick="sw('ships')">🚢 Ships</div>
+      <div class="mtab" onclick="sw('weather')">🌩 Radar</div>
+      <div class="mtab" onclick="sw('fires')">🔥 Fires</div>
+      <div class="mtab" onclick="sw('quakes')">📡 Seismic</div>
+      <div class="mtab" onclick="sw('wind')">💨 Wind</div>
+      <div class="mtab" onclick="sw('traffic')">🚦 Traffic</div>
+      <div class="mtab" onclick="sw('hurricanes')">🌀 Hurr.</div>
+      <div class="mtab" onclick="sw('satellite')">🛰 Sat.</div>
+    </div>
+    <div id="map-area">
+      <iframe id="map-usmap" class="mf on" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d15000000!2d-96!3d38!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sus!4v1700000000!5m2!1sen!2sus" style="filter:saturate(0.2) brightness(0.5) hue-rotate(195deg);" allowfullscreen loading="lazy" title="U.S. Map"></iframe>
+      <iframe id="map-flights" class="mf" src="https://globe.adsbexchange.com/?lat=38&lon=-96&zoom=5&mil=true" allowfullscreen title="Flights"></iframe>
+      <iframe id="map-ships" class="mf" src="https://www.marinetraffic.com/en/ais/embed/maptype:0/mmsi:0/zoom:4/lat:38/lon:-96/width:100/height:100" allowfullscreen title="Ships"></iframe>
+      <iframe id="map-weather" class="mf" src="https://embed.windy.com/embed2.html?lat=38&lon=-96&detailLat=38&detailLon=-96&width=990&height=600&pane=rain&overlay=rain&product=ecmwf&level=surface&pressure=true&message=true" allowfullscreen title="Weather"></iframe>
+      <iframe id="map-fires" class="mf" src="https://firms.modaps.eosdis.nasa.gov/usfs/map/?layers=VIIRS_SNPP_NRT&lat=38&lng=-96&zoom=5" allowfullscreen title="Wildfires"></iframe>
+      <iframe id="map-quakes" class="mf" src="https://earthquake.usgs.gov/earthquakes/map/?extent=-6,&-97&extent=69,-17" allowfullscreen title="Seismic"></iframe>
+      <iframe id="map-wind" class="mf" src="https://embed.windy.com/embed2.html?lat=38&lon=-96&detailLat=38&detailLon=-96&width=990&height=600&pane=wind&overlay=wind&product=ecmwf&level=surface&pressure=true&message=true" allowfullscreen title="Wind"></iframe>
+      <iframe id="map-traffic" class="mf" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d15000000!2d-96!3d38!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus&layer=t" allowfullscreen loading="lazy" title="Traffic"></iframe>
+      <iframe id="map-hurricanes" class="mf" src="https://www.nhc.noaa.gov/servlet/newmap?basin=natl&prod=btkmap&mode=realtime" allowfullscreen title="Hurricanes"></iframe>
+      <iframe id="map-satellite" class="mf" src="https://embed.windy.com/embed2.html?lat=38&lon=-96&detailLat=38&detailLon=-96&width=990&height=600&pane=satellite&overlay=satellite&product=ecmwf&level=surface&pressure=true&message=true" allowfullscreen title="Satellite"></iframe>
+      <div id="mlbl"><span class="d"></span><span id="mlt">U.S. SITUATION MAP — LIVE</span></div>
+    </div>
+    <div id="bstrip">
+      <div class="bc" onclick="sw('flights')"><span class="bc-l">Live Flights</span><span class="bc-v c">~9,800</span><span class="bc-s">ADS-B</span></div>
+      <div class="bc" onclick="sw('quakes')"><span class="bc-l">Earthquakes 24h</span><span class="bc-v" id="bc-q">…</span><span class="bc-s">USGS M1.5+</span></div>
+      <div class="bc" onclick="sw('fires')"><span class="bc-l">Wildfires</span><span class="bc-v a">~140</span><span class="bc-s">NIFC</span></div>
+      <div class="bc"><span class="bc-l">National Debt</span><span class="bc-v r">$36.2T</span><span class="bc-s">Rising</span></div>
+      <div class="bc"><span class="bc-l">Unemployment</span><span class="bc-v g">3.9%</span><span class="bc-s">BLS</span></div>
+      <div class="bc" onclick="sw('weather')"><span class="bc-l">WX Alerts</span><span class="bc-v a" id="bc-wx">…</span><span class="bc-s">NWS Active</span></div>
+      <div class="bc"><span class="bc-l">Port Ships</span><span class="bc-v c">~4,200</span><span class="bc-s">AIS</span></div>
+      <div class="bc" style="border-right:none"><span class="bc-l">Congress</span><span class="bc-v g">SESSION</span><span class="bc-s">Senate + House</span></div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="rp">
+    <div class="rpt">
+      <div class="rt on" onclick="srt('wh')">White House</div>
+      <div class="rt" onclick="srt('tv')">Live TV</div>
+      <div class="rt" onclick="srt('cams')">Cams</div>
+      <div class="rt" onclick="srt('media')">Media</div>
+    </div>
+    <div class="rpp on" id="rp-wh">
+      <div class="psec"><div class="pst"><span class="psd d-r"></span>Executive Access</div></div>
+      <a href="https://www.whitehouse.gov/live/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">📺</span><div><div class="whl-lb">Live</div><div class="whl-t">White House Live</div></div></a>
+      <a href="https://www.whitehouse.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">🏛️</span><div><div class="whl-lb">Official</div><div class="whl-t">WhiteHouse.gov</div></div></a>
+      <a href="https://truthsocial.com/@realDonaldTrump" target="_blank" rel="noopener" class="whl"><span class="whl-ic">💬</span><div><div class="whl-lb">Direct</div><div class="whl-t">President Trump</div></div></a>
+      <a href="https://www.c-span.org/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">📻</span><div><div class="whl-lb">Gov TV</div><div class="whl-t">C-SPAN Live</div></div></a>
+      <a href="https://www.senate.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">🏛</span><div><div class="whl-lb">Legislature</div><div class="whl-t">U.S. Senate</div></div></a>
+      <a href="https://www.house.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">🏛</span><div><div class="whl-lb">Legislature</div><div class="whl-t">U.S. House</div></div></a>
+      <a href="https://www.supremecourt.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">⚖️</span><div><div class="whl-lb">Judiciary</div><div class="whl-t">Supreme Court</div></div></a>
+      <a href="https://www.defense.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">🪖</span><div><div class="whl-lb">Military</div><div class="whl-t">Pentagon / DoD</div></div></a>
+      <a href="https://www.dhs.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">🛡</span><div><div class="whl-lb">Security</div><div class="whl-t">DHS</div></div></a>
+      <a href="https://www.state.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">🌐</span><div><div class="whl-lb">Diplomacy</div><div class="whl-t">State Dept.</div></div></a>
+      <a href="https://www.fbi.gov/" target="_blank" rel="noopener" class="whl"><span class="whl-ic">🔎</span><div><div class="whl-lb">Federal</div><div class="whl-t">FBI.gov</div></div></a>
+      <a href="https://www.cia.gov/stories/news/" target="_blank" rel="noopener" class="whl" style="border-bottom:none"><span class="whl-ic">🕵️</span><div><div class="whl-lb">Intel</div><div class="whl-t">CIA Newsroom</div></div></a>
+    </div>
+    <div class="rpp" id="rp-tv">
+      <div class="psec"><div class="pst"><span class="psd d-r"></span>Click to expand</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr);">
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/h3MuIUNCCLI?autoplay=1','Fox News Live')"><iframe src="https://www.youtube.com/embed/h3MuIUNCCLI" loading="lazy" title="Fox"></iframe><div class="slbl"><span><span class="ld"></span>FOX</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/eWTZVDpLVNk?autoplay=1','CNN Live')"><iframe src="https://www.youtube.com/embed/eWTZVDpLVNk" loading="lazy" title="CNN"></iframe><div class="slbl"><span><span class="ld"></span>CNN</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/ar9sHhQBMbM?autoplay=1','Bloomberg TV Live')"><iframe src="https://www.youtube.com/embed/ar9sHhQBMbM" loading="lazy" title="Bloomberg"></iframe><div class="slbl"><span><span class="ld"></span>BLOOMBERG</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/F5uA_isUqlo?autoplay=1','Sky News Live')"><iframe src="https://www.youtube.com/embed/F5uA_isUqlo" loading="lazy" title="Sky"></iframe><div class="slbl"><span><span class="ld"></span>SKY NEWS</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/b9mdOtNMoto?autoplay=1','Al Jazeera Live')"><iframe src="https://www.youtube.com/embed/b9mdOtNMoto" loading="lazy" title="AJ"></iframe><div class="slbl"><span><span class="ld"></span>AL JAZEERA</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/vOTiJkg1voo?autoplay=1','MSNBC Live')"><iframe src="https://www.youtube.com/embed/vOTiJkg1voo" loading="lazy" title="MSNBC"></iframe><div class="slbl"><span><span class="ld"></span>MSNBC</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/9Auq9mYxFEE?autoplay=1','ABC News Live')"><iframe src="https://www.youtube.com/embed/9Auq9mYxFEE" loading="lazy" title="ABC"></iframe><div class="slbl"><span><span class="ld"></span>ABC</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/w_Ma8oQLmSM?autoplay=1','NBC News Now')"><iframe src="https://www.youtube.com/embed/w_Ma8oQLmSM" loading="lazy" title="NBC"></iframe><div class="slbl"><span><span class="ld"></span>NBC</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q&autoplay=1','C-SPAN Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q" loading="lazy" title="CSPAN"></iframe><div class="slbl"><span><span class="ld"></span>C-SPAN</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCVTyTA7-g9nopHeHbeuvpRA&autoplay=1','CBS News Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCVTyTA7-g9nopHeHbeuvpRA" loading="lazy" title="CBS"></iframe><div class="slbl"><span><span class="ld"></span>CBS</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCNye-wNBqNL5ZzHSJj3l8Bg&autoplay=1','The Hill Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCNye-wNBqNL5ZzHSJj3l8Bg" loading="lazy" title="Hill"></iframe><div class="slbl"><span><span class="ld"></span>THE HILL</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCoSk9YDUVF4yGE3nCjVdBJA&autoplay=1','PBS NewsHour')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCoSk9YDUVF4yGE3nCjVdBJA" loading="lazy" title="PBS"></iframe><div class="slbl"><span><span class="ld"></span>PBS</span></div></div>
+      </div>
+    </div>
+    <div class="rpp" id="rp-cams">
+      <div class="psec"><div class="pst"><span class="psd d-c"></span>U.S. Cams — Click to expand</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr);">
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/1EiC9bvVGnk?autoplay=1','NYC — Times Square')"><iframe src="https://www.youtube.com/embed/1EiC9bvVGnk" loading="lazy" title="NYC"></iframe><div class="slbl"><span>🗽 NYC</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/hRL2g0c5kso?autoplay=1','Washington DC')"><iframe src="https://www.youtube.com/embed/hRL2g0c5kso" loading="lazy" title="DC"></iframe><div class="slbl"><span>🏛 DC</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/AdUw5RdyZxI?autoplay=1','Las Vegas Strip')"><iframe src="https://www.youtube.com/embed/AdUw5RdyZxI" loading="lazy" title="Vegas"></iframe><div class="slbl"><span>🎰 Vegas</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/86YLFOog4GM?autoplay=1','Chicago')"><iframe src="https://www.youtube.com/embed/86YLFOog4GM" loading="lazy" title="Chicago"></iframe><div class="slbl"><span>🌆 Chicago</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/LciMCmkOvVc?autoplay=1','San Francisco')"><iframe src="https://www.youtube.com/embed/LciMCmkOvVc" loading="lazy" title="SF"></iframe><div class="slbl"><span>🌁 SF</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/DNjDzFVDjCE?autoplay=1','Los Angeles')"><iframe src="https://www.youtube.com/embed/DNjDzFVDjCE" loading="lazy" title="LA"></iframe><div class="slbl"><span>🌞 LA</span></div></div>
+      </div>
+    </div>
+    <div class="rpp" id="rp-media">
+      <div class="srcblk"><div class="srcblk-t" style="color:var(--rb);">Conservative</div>
+        <a href="https://www.foxnews.com/" target="_blank" rel="noopener" class="srca">Fox News</a>
+        <a href="https://www.dailywire.com/" target="_blank" rel="noopener" class="srca">Daily Wire</a>
+        <a href="https://nypost.com/" target="_blank" rel="noopener" class="srca">New York Post</a>
+        <a href="https://www.breitbart.com/" target="_blank" rel="noopener" class="srca">Breitbart</a>
+        <a href="https://www.newsmax.com/" target="_blank" rel="noopener" class="srca">Newsmax</a>
+      </div>
+      <div class="srcblk"><div class="srcblk-t" style="color:var(--bb);">Mainstream</div>
+        <a href="https://www.reuters.com/" target="_blank" rel="noopener" class="srca">Reuters</a>
+        <a href="https://apnews.com/" target="_blank" rel="noopener" class="srca">AP News</a>
+        <a href="https://www.cnn.com/" target="_blank" rel="noopener" class="srca">CNN</a>
+        <a href="https://www.nytimes.com/" target="_blank" rel="noopener" class="srca">New York Times</a>
+        <a href="https://www.politico.com/" target="_blank" rel="noopener" class="srca">Politico</a>
+      </div>
+      <div class="srcblk" style="border-bottom:none"><div class="srcblk-t" style="color:var(--cyan);">Financial / OSINT</div>
+        <a href="https://www.bloomberg.com/" target="_blank" rel="noopener" class="srca">Bloomberg</a>
+        <a href="https://www.wsj.com/" target="_blank" rel="noopener" class="srca">Wall Street Journal</a>
+        <a href="https://www.bellingcat.com/" target="_blank" rel="noopener" class="srca">Bellingcat OSINT</a>
+        <a href="https://foreignpolicy.com/" target="_blank" rel="noopener" class="srca">Foreign Policy</a>
+      </div>
+    </div>
+  </div>
+</div><!-- /app -->
+
+<!-- ═══ CUSTOMIZE BAR ════════════════════════════════ -->
+<div id="customize-bar">
+  <span class="cb-msg">⠿ CUSTOMIZE MODE ACTIVE — Drag sections to reorder · Click ▲▼ to collapse</span>
+  <button class="cb-reset" onclick="resetOrder()">↺ Reset</button>
+  <button class="cb-done" onclick="toggleCustomize()">✓ Done</button>
+</div>
+
+<!-- ═══ FULL PAGE SECTIONS (DRAGGABLE) ══════════════ -->
+<div id="fullpage">
+
+  <!-- LIVE TV -->
+  <div class="drag-section" id="sec-tv" data-order="0">
+    <div class="sec-bar draggable-handle">
+      <span class="drag-handle-icon">⠿⠿</span>
+      <span class="sec-eyebrow">// Broadcast</span>
+      <span class="sec-title" style="font-size:20px;">Live News TV</span>
+      <div class="sec-controls">
+        <div class="sec-ctrl-btn" title="Minimize/Maximize" onclick="toggleMin(this)">▼</div>
+        <div class="sec-ctrl-btn" title="Expand all" onclick="openAllTV()">⤢</div>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="sgrd" id="tv-grid">
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/h3MuIUNCCLI?autoplay=1','Fox News Live')"><iframe src="https://www.youtube.com/embed/h3MuIUNCCLI" loading="lazy" title="Fox News"></iframe><div class="slbl"><span><span class="ld"></span>FOX NEWS</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/eWTZVDpLVNk?autoplay=1','CNN Live')"><iframe src="https://www.youtube.com/embed/eWTZVDpLVNk" loading="lazy" title="CNN"></iframe><div class="slbl"><span><span class="ld"></span>CNN</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/ar9sHhQBMbM?autoplay=1','Bloomberg TV Live')"><iframe src="https://www.youtube.com/embed/ar9sHhQBMbM" loading="lazy" title="Bloomberg"></iframe><div class="slbl"><span><span class="ld"></span>BLOOMBERG</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/F5uA_isUqlo?autoplay=1','Sky News Live')"><iframe src="https://www.youtube.com/embed/F5uA_isUqlo" loading="lazy" title="Sky News"></iframe><div class="slbl"><span><span class="ld"></span>SKY NEWS</span><span class="slbl-r">🇬🇧</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/b9mdOtNMoto?autoplay=1','Al Jazeera Live')"><iframe src="https://www.youtube.com/embed/b9mdOtNMoto" loading="lazy" title="Al Jazeera"></iframe><div class="slbl"><span><span class="ld"></span>AL JAZEERA</span><span class="slbl-r">🇶🇦</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/9Auq9mYxFEE?autoplay=1','ABC News Live')"><iframe src="https://www.youtube.com/embed/9Auq9mYxFEE" loading="lazy" title="ABC News"></iframe><div class="slbl"><span><span class="ld"></span>ABC NEWS</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/vOTiJkg1voo?autoplay=1','MSNBC Live')"><iframe src="https://www.youtube.com/embed/vOTiJkg1voo" loading="lazy" title="MSNBC"></iframe><div class="slbl"><span><span class="ld"></span>MSNBC</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/w_Ma8oQLmSM?autoplay=1','NBC News Now')"><iframe src="https://www.youtube.com/embed/w_Ma8oQLmSM" loading="lazy" title="NBC"></iframe><div class="slbl"><span><span class="ld"></span>NBC NEWS NOW</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q&autoplay=1','C-SPAN Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q" loading="lazy" title="C-SPAN"></iframe><div class="slbl"><span><span class="ld"></span>C-SPAN</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCVTyTA7-g9nopHeHbeuvpRA&autoplay=1','CBS News Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCVTyTA7-g9nopHeHbeuvpRA" loading="lazy" title="CBS News"></iframe><div class="slbl"><span><span class="ld"></span>CBS NEWS</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCNye-wNBqNL5ZzHSJj3l8Bg&autoplay=1','The Hill Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCNye-wNBqNL5ZzHSJj3l8Bg" loading="lazy" title="The Hill"></iframe><div class="slbl"><span><span class="ld"></span>THE HILL</span><span class="slbl-r">🇺🇸</span></div></div>
+        <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCoSk9YDUVF4yGE3nCjVdBJA&autoplay=1','PBS NewsHour')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCoSk9YDUVF4yGE3nCjVdBJA" loading="lazy" title="PBS"></iframe><div class="slbl"><span><span class="ld"></span>PBS NEWSHOUR</span><span class="slbl-r">🇺🇸</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WEBCAMS -->
+  <div class="drag-section" id="sec-cams" data-order="1">
+    <div class="sec-bar draggable-handle">
+      <span class="drag-handle-icon">⠿⠿</span>
+      <span class="sec-eyebrow">// Surveillance</span>
+      <span class="sec-title" style="font-size:20px;">Live Global Webcams</span>
+      <div class="sec-controls">
+        <div class="sec-ctrl-btn" title="Minimize/Maximize" onclick="toggleMin(this)">▼</div>
+      </div>
+    </div>
+    <div class="sec-body">
+      <!-- CAM CATEGORY TABS -->
+      <div class="cam-tabs">
+        <div class="cam-tab on" onclick="swCam('usa')">🇺🇸 United States</div>
+        <div class="cam-tab" onclick="swCam('allies')">🌍 U.S. Allies</div>
+        <div class="cam-tab" onclick="swCam('mideast')">🕌 Middle East</div>
+        <div class="cam-tab" onclick="swCam('adversaries')">⚠ Watch: Russia / Asia</div>
+        <div class="cam-tab" onclick="swCam('space')">🛸 Space / Earth</div>
+      </div>
+
+      <!-- USA CAMS -->
+      <div class="cam-panel on" id="cam-usa">
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/1EiC9bvVGnk?autoplay=1','NYC — Times Square Live')"><iframe src="https://www.youtube.com/embed/1EiC9bvVGnk" loading="lazy" title="NYC"></iframe><div class="slbl"><span>🗽 NYC — Times Square</span><span class="slbl-r">NY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/hRL2g0c5kso?autoplay=1','Washington DC Live')"><iframe src="https://www.youtube.com/embed/hRL2g0c5kso" loading="lazy" title="DC"></iframe><div class="slbl"><span>🏛 Washington D.C.</span><span class="slbl-r">DC</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/AdUw5RdyZxI?autoplay=1','Las Vegas Strip Live')"><iframe src="https://www.youtube.com/embed/AdUw5RdyZxI" loading="lazy" title="Vegas"></iframe><div class="slbl"><span>🎰 Las Vegas Strip</span><span class="slbl-r">NV</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/oCDaHdCiSoE?autoplay=1','Miami Beach Live')"><iframe src="https://www.youtube.com/embed/oCDaHdCiSoE" loading="lazy" title="Miami"></iframe><div class="slbl"><span>🌴 Miami Beach</span><span class="slbl-r">FL</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/86YLFOog4GM?autoplay=1','Chicago Live')"><iframe src="https://www.youtube.com/embed/86YLFOog4GM" loading="lazy" title="Chicago"></iframe><div class="slbl"><span>🌆 Chicago Loop</span><span class="slbl-r">IL</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/LciMCmkOvVc?autoplay=1','San Francisco Live')"><iframe src="https://www.youtube.com/embed/LciMCmkOvVc" loading="lazy" title="SF"></iframe><div class="slbl"><span>🌁 San Francisco</span><span class="slbl-r">CA</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/DNjDzFVDjCE?autoplay=1','Los Angeles Live')"><iframe src="https://www.youtube.com/embed/DNjDzFVDjCE" loading="lazy" title="LA"></iframe><div class="slbl"><span>🌞 Los Angeles</span><span class="slbl-r">CA</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/2oyhlad64-s?autoplay=1','Houston Live')"><iframe src="https://www.youtube.com/embed/2oyhlad64-s" loading="lazy" title="Houston"></iframe><div class="slbl"><span>🤠 Houston</span><span class="slbl-r">TX</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/wqJeluK3-zs?autoplay=1','New Orleans Live')"><iframe src="https://www.youtube.com/embed/wqJeluK3-zs" loading="lazy" title="NOLA"></iframe><div class="slbl"><span>🎷 New Orleans</span><span class="slbl-r">LA</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/Zsd6SrdGc2A?autoplay=1','Niagara Falls Live')"><iframe src="https://www.youtube.com/embed/Zsd6SrdGc2A" loading="lazy" title="Niagara"></iframe><div class="slbl"><span>💧 Niagara Falls</span><span class="slbl-r">NY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/nDFJVYKLjOU?autoplay=1','Times Square Night Live')"><iframe src="https://www.youtube.com/embed/nDFJVYKLjOU" loading="lazy" title="Times Sq Night"></iframe><div class="slbl"><span>🌙 NYC Night Cam</span><span class="slbl-r">NY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCXFBiMdmRGFHBPKdFalVj9Q&autoplay=1','Phoenix AZ Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCXFBiMdmRGFHBPKdFalVj9Q" loading="lazy" title="Phoenix"></iframe><div class="slbl"><span>🌵 Phoenix</span><span class="slbl-r">AZ</span></div></div>
+        </div>
+      </div>
+
+      <!-- U.S. ALLIES CAMS -->
+      <div class="cam-panel" id="cam-allies">
+        <div class="divlbl">🇬🇧 United Kingdom</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/AdLzCH2sUoM?autoplay=1','London — Big Ben Live')"><iframe src="https://www.youtube.com/embed/AdLzCH2sUoM" loading="lazy" title="London"></iframe><div class="slbl"><span>🇬🇧 London — Big Ben</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/sxgeVwIiOok?autoplay=1','London — Piccadilly Circus Live')"><iframe src="https://www.youtube.com/embed/sxgeVwIiOok" loading="lazy" title="Piccadilly"></iframe><div class="slbl"><span>🇬🇧 London — Piccadilly</span></div></div>
+        </div>
+        <div class="divlbl">🇮🇱 Israel</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/PGHtmtWMQsY?autoplay=1','Jerusalem — Western Wall Live')"><iframe src="https://www.youtube.com/embed/PGHtmtWMQsY" loading="lazy" title="Western Wall"></iframe><div class="slbl"><span>🇮🇱 Jerusalem — Western Wall</span><span class="slbl-r">ALLY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/cF_yWGIVmTo?autoplay=1','Tel Aviv Beachfront Live')"><iframe src="https://www.youtube.com/embed/cF_yWGIVmTo" loading="lazy" title="Tel Aviv"></iframe><div class="slbl"><span>🇮🇱 Tel Aviv Beach</span><span class="slbl-r">ALLY</span></div></div>
+        </div>
+        <div class="divlbl">🇫🇷 France · 🇩🇪 Germany · 🇯🇵 Japan · 🇦🇺 Australia</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/t7GzZNPlJA8?autoplay=1','Paris — Eiffel Tower Live')"><iframe src="https://www.youtube.com/embed/t7GzZNPlJA8" loading="lazy" title="Paris"></iframe><div class="slbl"><span>🇫🇷 Paris — Eiffel Tower</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/uVCp4IWlDGM?autoplay=1','Berlin — Brandenburg Gate Live')"><iframe src="https://www.youtube.com/embed/uVCp4IWlDGM" loading="lazy" title="Berlin"></iframe><div class="slbl"><span>🇩🇪 Berlin — Brandenburg Gate</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/h1o_MFWQBIM?autoplay=1','Tokyo — Shibuya Crossing Live')"><iframe src="https://www.youtube.com/embed/h1o_MFWQBIM" loading="lazy" title="Tokyo"></iframe><div class="slbl"><span>🇯🇵 Tokyo — Shibuya</span><span class="slbl-r">ALLY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCkMLiDMKLAzfcmkJ-VBzOWg&autoplay=1','Sydney Australia Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCkMLiDMKLAzfcmkJ-VBzOWg" loading="lazy" title="Sydney"></iframe><div class="slbl"><span>🇦🇺 Sydney Harbour</span><span class="slbl-r">ALLY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/GDpQueue5SQ?autoplay=1','Seoul South Korea Live')"><iframe src="https://www.youtube.com/embed/GDpQueue5SQ" loading="lazy" title="Seoul"></iframe><div class="slbl"><span>🇰🇷 Seoul — Downtown</span><span class="slbl-r">ALLY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/pCo0Y21TfI0?autoplay=1','Rome Italy Live')"><iframe src="https://www.youtube.com/embed/pCo0Y21TfI0" loading="lazy" title="Rome"></iframe><div class="slbl"><span>🇮🇹 Rome — Trevi Fountain</span><span class="slbl-r">NATO</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/OP7E0VFpEJo?autoplay=1','Warsaw Poland Live')"><iframe src="https://www.youtube.com/embed/OP7E0VFpEJo" loading="lazy" title="Warsaw"></iframe><div class="slbl"><span>🇵🇱 Warsaw — Old Town</span><span class="slbl-r">NATO</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/GFWbBKqXrBY?autoplay=1','Amsterdam Netherlands Live')"><iframe src="https://www.youtube.com/embed/GFWbBKqXrBY" loading="lazy" title="Amsterdam"></iframe><div class="slbl"><span>🇳🇱 Amsterdam Canals</span><span class="slbl-r">NATO</span></div></div>
+        </div>
+        <div class="divlbl">🕌 U.S. Allies — Middle East & Gulf</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg&autoplay=1','Dubai UAE Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg" loading="lazy" title="Dubai"></iframe><div class="slbl"><span>🇦🇪 Dubai — Downtown</span><span class="slbl-r">ALLY</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/oBnTpzQc5dQ?autoplay=1','Doha Qatar Live')"><iframe src="https://www.youtube.com/embed/oBnTpzQc5dQ" loading="lazy" title="Doha"></iframe><div class="slbl"><span>🇶🇦 Doha, Qatar</span><span class="slbl-r">US BASE</span></div></div>
+        </div>
+      </div>
+
+      <!-- MIDDLE EAST CAMS -->
+      <div class="cam-panel" id="cam-mideast">
+        <div class="divlbl">🕌 Middle East — Live Conflict & Crisis Zones</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/PGHtmtWMQsY?autoplay=1','Jerusalem — Western Wall')"><iframe src="https://www.youtube.com/embed/PGHtmtWMQsY" loading="lazy" title="Jerusalem"></iframe><div class="slbl"><span>🇮🇱 Jerusalem</span><span class="slbl-r">CONFLICT ZONE</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/cF_yWGIVmTo?autoplay=1','Tel Aviv')"><iframe src="https://www.youtube.com/embed/cF_yWGIVmTo" loading="lazy" title="Tel Aviv"></iframe><div class="slbl"><span>🇮🇱 Tel Aviv</span><span class="slbl-r">ISRAEL</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/oBnTpzQc5dQ?autoplay=1','Doha Qatar')"><iframe src="https://www.youtube.com/embed/oBnTpzQc5dQ" loading="lazy" title="Doha"></iframe><div class="slbl"><span>🇶🇦 Doha</span><span class="slbl-r">QATAR</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg&autoplay=1','Dubai Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg" loading="lazy" title="Dubai"></iframe><div class="slbl"><span>🇦🇪 Dubai</span><span class="slbl-r">UAE</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCt1sfOrfYlmmkFe2RpBIpXw&autoplay=1','Cairo Egypt Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCt1sfOrfYlmmkFe2RpBIpXw" loading="lazy" title="Cairo"></iframe><div class="slbl"><span>🇪🇬 Cairo — Pyramids View</span><span class="slbl-r">EGYPT</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCP1iRaFlS5EYjJBryFV9JPg&autoplay=1','Beirut Lebanon Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCP1iRaFlS5EYjJBryFV9JPg" loading="lazy" title="Beirut"></iframe><div class="slbl"><span>🇱🇧 Beirut</span><span class="slbl-r">WATCH</span></div></div>
+        </div>
+      </div>
+
+      <!-- ADVERSARIES / WATCH -->
+      <div class="cam-panel" id="cam-adversaries">
+        <div class="divlbl">🇷🇺 Russia — Watch Zone</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCMV_gsDjAGAGcZt_aDPfGSA&autoplay=1','Moscow Red Square Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCMV_gsDjAGAGcZt_aDPfGSA" loading="lazy" title="Moscow"></iframe><div class="slbl"><span>🇷🇺 Moscow — Red Square</span><span class="slbl-r">RUSSIA ⚠</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/7nSwkUXbJzU?autoplay=1','St. Petersburg Live')"><iframe src="https://www.youtube.com/embed/7nSwkUXbJzU" loading="lazy" title="St Petersburg"></iframe><div class="slbl"><span>🇷🇺 St. Petersburg</span><span class="slbl-r">RUSSIA ⚠</span></div></div>
+        </div>
+        <div class="divlbl">🇨🇳 China — Watch Zone</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/s8oJMUhluEA?autoplay=1','Beijing Tiananmen Live')"><iframe src="https://www.youtube.com/embed/s8oJMUhluEA" loading="lazy" title="Beijing"></iframe><div class="slbl"><span>🇨🇳 Beijing — Tiananmen</span><span class="slbl-r">CHINA ⚠</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/jCMaYs2rRRg?autoplay=1','Shanghai Live')"><iframe src="https://www.youtube.com/embed/jCMaYs2rRRg" loading="lazy" title="Shanghai"></iframe><div class="slbl"><span>🇨🇳 Shanghai Skyline</span><span class="slbl-r">CHINA ⚠</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UClxGUa3sAWcLMAbXPJi7osw&autoplay=1','Hong Kong Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UClxGUa3sAWcLMAbXPJi7osw" loading="lazy" title="Hong Kong"></iframe><div class="slbl"><span>🇭🇰 Hong Kong Harbour</span><span class="slbl-r">WATCH</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCFjf3qeEPPdBHf0Pzd-VTGQ&autoplay=1','Taiwan Taipei Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCFjf3qeEPPdBHf0Pzd-VTGQ" loading="lazy" title="Taipei"></iframe><div class="slbl"><span>🇹🇼 Taipei, Taiwan</span><span class="slbl-r">FLASHPOINT</span></div></div>
+        </div>
+        <div class="divlbl">🇮🇷 Iran · 🇰🇵 N. Korea — Enemy Watch</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCXw8nRsNkTnZfqkLVWW5YBg&autoplay=1','Tehran Iran Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCXw8nRsNkTnZfqkLVWW5YBg" loading="lazy" title="Tehran"></iframe><div class="slbl"><span>🇮🇷 Tehran</span><span class="slbl-r">IRAN ⚠</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/Ue1TN2-sH4c?autoplay=1','North Korea Pyongyang Footage')"><iframe src="https://www.youtube.com/embed/Ue1TN2-sH4c" loading="lazy" title="N Korea"></iframe><div class="slbl"><span>🇰🇵 N. Korea Intelligence</span><span class="slbl-r">DPRK ⚠</span></div></div>
+        </div>
+        <div class="divlbl">🇺🇦 Ukraine — Active War Zone</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCqq_VTHhTEmQaAFwkKLEHpw&autoplay=1','Kyiv Ukraine Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCqq_VTHhTEmQaAFwkKLEHpw" loading="lazy" title="Kyiv"></iframe><div class="slbl"><span>🇺🇦 Kyiv — Capital</span><span class="slbl-r">WAR ZONE</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCiGm_E4ZwYSHV3bcW1pnSeQ&autoplay=1','Ukraine War Reporting Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCiGm_E4ZwYSHV3bcW1pnSeQ" loading="lazy" title="Ukraine War"></iframe><div class="slbl"><span>🇺🇦 Ukraine War Report</span><span class="slbl-r">CONFLICT</span></div></div>
+        </div>
+      </div>
+
+      <!-- SPACE CAMS -->
+      <div class="cam-panel" id="cam-space">
+        <div class="divlbl">🛸 NASA & Space Feeds</div>
+        <div class="sgrd">
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw&autoplay=1','NASA ISS Live Feed')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw" loading="lazy" title="NASA ISS"></iframe><div class="slbl"><span>🛸 NASA ISS — Live View</span><span class="slbl-r">250mi UP</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCsuKHWk01J9Tl5EkXDgqxeA&autoplay=1','Earth from Space Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCsuKHWk01J9Tl5EkXDgqxeA" loading="lazy" title="Earth Space"></iframe><div class="slbl"><span>🌍 Earth from Space</span><span class="slbl-r">LIVE</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/21X5lGlDOfg?autoplay=1','NASA Earth 4K Live')"><iframe src="https://www.youtube.com/embed/21X5lGlDOfg" loading="lazy" title="NASA Earth 4K"></iframe><div class="slbl"><span>🌏 Earth — 4K NASA</span><span class="slbl-r">NASA</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ&autoplay=1','NASA TV Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ" loading="lazy" title="NASA TV"></iframe><div class="slbl"><span>🚀 NASA TV Official</span><span class="slbl-r">LIVE</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/l3QQQu7QLoM?autoplay=1','SpaceX Launch Live')"><iframe src="https://www.youtube.com/embed/l3QQQu7QLoM" loading="lazy" title="SpaceX"></iframe><div class="slbl"><span>🚀 SpaceX Launch Cam</span><span class="slbl-r">SPACEX</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCtI0Hodo5o5dUb67FeUjAlg&autoplay=1','Aurora Borealis Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCtI0Hodo5o5dUb67FeUjAlg" loading="lazy" title="Aurora"></iframe><div class="slbl"><span>💫 Aurora Borealis</span><span class="slbl-r">ARCTIC</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/FNt9e0a1Xac?autoplay=1','Moon Surface 4K')"><iframe src="https://www.youtube.com/embed/FNt9e0a1Xac" loading="lazy" title="Moon"></iframe><div class="slbl"><span>🌕 Moon — 4K Surface</span><span class="slbl-r">NASA</span></div></div>
+          <div class="scl" onclick="opnMod('https://www.youtube.com/embed/live_stream?channel=UCMjKv2h2DCWRK_eBVLwDqSQ&autoplay=1','Kennedy Space Center Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCMjKv2h2DCWRK_eBVLwDqSQ" loading="lazy" title="KSC"></iframe><div class="slbl"><span>🚀 Kennedy Space Center</span><span class="slbl-r">KSC</span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHITE HOUSE -->
+  <div class="drag-section" id="sec-wh" data-order="2">
+    <div class="sec-bar draggable-handle">
+      <span class="drag-handle-icon">⠿⠿</span>
+      <span class="sec-eyebrow">// Executive</span>
+      <span class="sec-title" style="font-size:20px;">White House Watch</span>
+      <div class="sec-controls">
+        <div class="sec-ctrl-btn" title="Minimize/Maximize" onclick="toggleMin(this)">▼</div>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="fps">
+        <div class="whg">
+          <a href="https://www.whitehouse.gov/live/" target="_blank" rel="noopener" class="whc"><span class="whc-ic">📺</span><div><div class="whc-lb">Live</div><div class="whc-t">White House Live Stream</div><div class="whc-d">Official live broadcast</div></div></a>
+          <a href="https://www.whitehouse.gov/" target="_blank" rel="noopener" class="whc"><span class="whc-ic">🏛️</span><div><div class="whc-lb">Official</div><div class="whc-t">WhiteHouse.gov</div><div class="whc-d">Executive orders, press releases</div></div></a>
+          <a href="https://truthsocial.com/@realDonaldTrump" target="_blank" rel="noopener" class="whc"><span class="whc-ic">💬</span><div><div class="whc-lb">Direct</div><div class="whc-t">President Trump</div><div class="whc-d">Truth Social feed</div></div></a>
+          <a href="https://www.youtube.com/@WhiteHouse/streams" target="_blank" rel="noopener" class="whc"><span class="whc-ic">▶</span><div><div class="whc-lb">Video</div><div class="whc-t">WH YouTube Streams</div><div class="whc-d">Briefings and addresses</div></div></a>
+          <a href="https://www.c-span.org/" target="_blank" rel="noopener" class="whc"><span class="whc-ic">📻</span><div><div class="whc-lb">Gov TV</div><div class="whc-t">C-SPAN Live</div><div class="whc-d">Congress in action</div></div></a>
+          <a href="https://www.defense.gov/" target="_blank" rel="noopener" class="whc"><span class="whc-ic">🪖</span><div><div class="whc-lb">Military</div><div class="whc-t">Pentagon / DoD</div><div class="whc-d">Defense releases</div></div></a>
+          <a href="https://www.dhs.gov/" target="_blank" rel="noopener" class="whc"><span class="whc-ic">🛡</span><div><div class="whc-lb">Security</div><div class="whc-t">DHS</div><div class="whc-d">Border, cyber, infrastructure</div></div></a>
+          <a href="https://www.fbi.gov/" target="_blank" rel="noopener" class="whc"><span class="whc-ic">🔎</span><div><div class="whc-lb">Federal</div><div class="whc-t">FBI.gov</div><div class="whc-d">Most wanted & news</div></div></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARKETS -->
+  <div class="drag-section" id="sec-mkts" data-order="3">
+    <div class="sec-bar draggable-handle">
+      <span class="drag-handle-icon">⠿⠿</span>
+      <span class="sec-eyebrow">// Economics</span>
+      <span class="sec-title" style="font-size:20px;">Markets &amp; Economy</span>
+      <div class="sec-controls">
+        <div class="sec-ctrl-btn" title="Minimize/Maximize" onclick="toggleMin(this)">▼</div>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="fps">
+        <div class="divlbl">📊 Global Ticker</div>
+        <div class="tkw"><iframe src="https://s.tradingview.com/embed-widget/tickers/?locale=en#%7B%22symbols%22%3A%5B%7B%22proName%22%3A%22FOREXCOM%3ASPXUSD%22%2C%22title%22%3A%22S%26P+500%22%7D%2C%7B%22proName%22%3A%22FOREXCOM%3ANSXUSD%22%2C%22title%22%3A%22US+100%22%7D%2C%7B%22proName%22%3A%22FX_IDC%3AEURUSD%22%2C%22title%22%3A%22EUR%2FUSD%22%7D%2C%7B%22proName%22%3A%22BITSTAMP%3ABTCUSD%22%2C%22title%22%3A%22Bitcoin%22%7D%2C%7B%22proName%22%3A%22BITSTAMP%3AETHUSD%22%2C%22title%22%3A%22Ethereum%22%7D%5D%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22showSymbolLogo%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A76%7D" allowtransparency scrolling="no" allowfullscreen style="width:100%;height:76px;border:none;"></iframe></div>
+        <div class="mkts" style="margin-top:8px;">
+          <div><div class="divlbl">📈 S&amp;P 500 Live</div><div class="chw"><iframe src="https://s.tradingview.com/embed-widget/advanced-chart/?locale=en#%7B%22autosize%22%3Atrue%2C%22symbol%22%3A%22SP%3ASPX%22%2C%22interval%22%3A%22D%22%2C%22timezone%22%3A%22America%2FNew_York%22%2C%22theme%22%3A%22dark%22%2C%22style%22%3A%221%22%2C%22withdateranges%22%3Atrue%2C%22allow_symbol_change%22%3Atrue%2C%22support_host%22%3A%22https%3A%2F%2Fwww.tradingview.com%22%7D" allowtransparency scrolling="no" allowfullscreen title="S&P"></iframe></div></div>
+          <div><div class="divlbl">🪙 Bitcoin Live</div><div class="chw"><iframe src="https://s.tradingview.com/embed-widget/advanced-chart/?locale=en#%7B%22autosize%22%3Atrue%2C%22symbol%22%3A%22COINBASE%3ABTCUSD%22%2C%22interval%22%3A%22D%22%2C%22timezone%22%3A%22America%2FNew_York%22%2C%22theme%22%3A%22dark%22%2C%22style%22%3A%221%22%2C%22withdateranges%22%3Atrue%2C%22allow_symbol_change%22%3Atrue%2C%22support_host%22%3A%22https%3A%2F%2Fwww.tradingview.com%22%7D" allowtransparency scrolling="no" allowfullscreen title="BTC"></iframe></div></div>
+        </div>
+        <div style="margin-top:8px;"><div class="divlbl">🌡 S&amp;P 500 Sector Heatmap</div><div class="hmw"><iframe src="https://s.tradingview.com/embed-widget/stock-heatmap/?locale=en#%7B%22exchanges%22%3A%5B%22NASDAQ%22%2C%22NYSE%22%5D%2C%22dataSource%22%3A%22SPX500%22%2C%22grouping%22%3A%22sector%22%2C%22blockSize%22%3A%22market_cap_basic%22%2C%22blockColor%22%3A%22change%22%2C%22colorTheme%22%3A%22dark%22%2C%22hasTopBar%22%3Afalse%2C%22isZoomEnabled%22%3Atrue%2C%22hasSymbolTooltip%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22320%22%7D" allowtransparency scrolling="no" allowfullscreen title="Heatmap"></iframe></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEDIA WATCH -->
+  <div class="drag-section" id="sec-media" data-order="4">
+    <div class="sec-bar draggable-handle">
+      <span class="drag-handle-icon">⠿⠿</span>
+      <span class="sec-eyebrow">// Intelligence</span>
+      <span class="sec-title" style="font-size:20px;">Media Watch</span>
+      <div class="sec-controls">
+        <div class="sec-ctrl-btn" title="Minimize/Maximize" onclick="toggleMin(this)">▼</div>
+      </div>
+    </div>
+    <div class="sec-body">
+      <div class="fps">
+        <div class="medg">
+          <div class="medc"><div class="medc-t" style="color:var(--rb);">Conservative</div>
+            <a href="https://www.foxnews.com/" target="_blank" rel="noopener" class="srca">Fox News</a>
+            <a href="https://www.dailywire.com/" target="_blank" rel="noopener" class="srca">Daily Wire</a>
+            <a href="https://nypost.com/" target="_blank" rel="noopener" class="srca">New York Post</a>
+            <a href="https://www.breitbart.com/" target="_blank" rel="noopener" class="srca">Breitbart</a>
+            <a href="https://www.washingtontimes.com/" target="_blank" rel="noopener" class="srca">Washington Times</a>
+            <a href="https://www.nationalreview.com/" target="_blank" rel="noopener" class="srca">National Review</a>
+            <a href="https://www.theblaze.com/" target="_blank" rel="noopener" class="srca">The Blaze</a>
+            <a href="https://townhall.com/" target="_blank" rel="noopener" class="srca">Townhall</a>
+            <a href="https://www.newsmax.com/" target="_blank" rel="noopener" class="srca">Newsmax</a>
+            <a href="https://www.oann.com/" target="_blank" rel="noopener" class="srca">OAN</a>
+          </div>
+          <div class="medc"><div class="medc-t" style="color:var(--bb);">Mainstream / Left</div>
+            <a href="https://www.reuters.com/" target="_blank" rel="noopener" class="srca">Reuters</a>
+            <a href="https://apnews.com/" target="_blank" rel="noopener" class="srca">AP News</a>
+            <a href="https://www.cnn.com/" target="_blank" rel="noopener" class="srca">CNN</a>
+            <a href="https://www.msnbc.com/" target="_blank" rel="noopener" class="srca">MSNBC</a>
+            <a href="https://www.nytimes.com/" target="_blank" rel="noopener" class="srca">New York Times</a>
+            <a href="https://www.washingtonpost.com/" target="_blank" rel="noopener" class="srca">Washington Post</a>
+            <a href="https://www.politico.com/" target="_blank" rel="noopener" class="srca">Politico</a>
+            <a href="https://www.theatlantic.com/" target="_blank" rel="noopener" class="srca">The Atlantic</a>
+            <a href="https://www.axios.com/" target="_blank" rel="noopener" class="srca">Axios</a>
+            <a href="https://www.huffpost.com/" target="_blank" rel="noopener" class="srca">HuffPost</a>
+          </div>
+          <div class="medc"><div class="medc-t" style="color:var(--cyan);">Financial</div>
+            <a href="https://www.bloomberg.com/" target="_blank" rel="noopener" class="srca">Bloomberg</a>
+            <a href="https://www.wsj.com/" target="_blank" rel="noopener" class="srca">Wall Street Journal</a>
+            <a href="https://www.ft.com/" target="_blank" rel="noopener" class="srca">Financial Times</a>
+            <a href="https://www.cnbc.com/" target="_blank" rel="noopener" class="srca">CNBC</a>
+            <a href="https://finance.yahoo.com/" target="_blank" rel="noopener" class="srca">Yahoo Finance</a>
+            <a href="https://www.marketwatch.com/" target="_blank" rel="noopener" class="srca">MarketWatch</a>
+            <a href="https://www.barrons.com/" target="_blank" rel="noopener" class="srca">Barron's</a>
+          </div>
+          <div class="medc"><div class="medc-t" style="color:var(--amber);">OSINT / Global</div>
+            <a href="https://www.bbc.com/news" target="_blank" rel="noopener" class="srca">BBC News</a>
+            <a href="https://www.aljazeera.com/" target="_blank" rel="noopener" class="srca">Al Jazeera</a>
+            <a href="https://www.skynews.com.au/" target="_blank" rel="noopener" class="srca">Sky News</a>
+            <a href="https://www.dw.com/en/" target="_blank" rel="noopener" class="srca">Deutsche Welle</a>
+            <a href="https://www.france24.com/en/" target="_blank" rel="noopener" class="srca">France 24</a>
+            <a href="https://www.bellingcat.com/" target="_blank" rel="noopener" class="srca">Bellingcat OSINT</a>
+            <a href="https://foreignpolicy.com/" target="_blank" rel="noopener" class="srca">Foreign Policy</a>
+            <a href="https://www.stratfor.com/" target="_blank" rel="noopener" class="srca">Stratfor</a>
+            <a href="https://www.understandingwar.org/" target="_blank" rel="noopener" class="srca">ISW War Studies</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /fullpage -->
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="footer-in">
+    <div class="ftg">
+      <div class="fbrand">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="background:var(--red);color:#fff;font-family:var(--disp);font-size:17px;padding:2px 9px 1px;clip-path:polygon(0 0,100% 0,91% 100%,0 100%);">327</div>
+          <div style="font-family:var(--disp);font-size:12px;letter-spacing:.1em;color:var(--white);">SITUATION ROOM</div>
+        </div>
+        <p>The most powerful American intelligence dashboard. Live maps, news, 40+ global cams, markets, and more — powered by 327 Media.</p>
+        <p style="margin-top:5px;font-family:var(--mono);font-size:7px;letter-spacing:.12em;color:var(--red);">327media.org</p>
+      </div>
+      <div class="ftcol">
+        <div class="ftcol-t">Maps</div>
+        <a href="#" onclick="sw('usmap')">U.S. Situation</a>
+        <a href="#" onclick="sw('flights')">Live Flights</a>
+        <a href="#" onclick="sw('ships')">Ship Traffic</a>
+        <a href="#" onclick="sw('weather')">Weather Radar</a>
+        <a href="#" onclick="sw('fires')">Wildfire</a>
+        <a href="#" onclick="sw('quakes')">Seismic</a>
+        <a href="#" onclick="sw('wind')">Wind</a>
+        <a href="#" onclick="sw('hurricanes')">Hurricanes</a>
+      </div>
+      <div class="ftcol">
+        <div class="ftcol-t">Sections</div>
+        <a href="#sec-tv">Live News TV</a>
+        <a href="#sec-cams">Webcams</a>
+        <a href="#sec-wh">White House</a>
+        <a href="#sec-mkts">Markets</a>
+        <a href="#sec-media">Media Watch</a>
+        <a href="https://327media.org" target="_blank" rel="noopener">327media.org</a>
+      </div>
+      <div class="ftcol">
+        <div class="ftcol-t">Connect</div>
+        <a href="mailto:327mediax@gmail.com">📧 327mediax@gmail.com</a>
+        <a href="https://x.com/327media1" target="_blank" rel="noopener">𝕏 @327Media1</a>
+        <a href="https://www.youtube.com/@ciapodcasttv" target="_blank" rel="noopener">▶ CIA Podcast</a>
+        <a href="https://327media.org" target="_blank" rel="noopener">🌐 327media.org</a>
+      </div>
+    </div>
+    <div class="ftbot">
+      <span class="ftcopy">© 2026 327 Media · Situation Room · Independent · Unfiltered</span>
+      <p class="ftdisc">For informational purposes only. Not affiliated with any government. Markets: TradingView. Maps: Google, Windy, USGS, NASA, ADS-B Exchange, NOAA. All cams: YouTube embeds.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── CLOCK
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false})+' ET';}
+tick();setInterval(tick,1000);
+
+// ── SIDEBAR TABS
+function swtab(id){
+  const ids=['feed','alerts','quakes','intel'];
+  document.querySelectorAll('.stab').forEach((t,i)=>t.classList.toggle('on',ids[i]===id));
+  document.querySelectorAll('.sp').forEach(p=>p.classList.toggle('on',p.id==='sp-'+id));
+}
+
+// ── RIGHT PANEL TABS
+function srt(id){
+  const ids=['wh','tv','cams','media'];
+  document.querySelectorAll('.rt').forEach((t,i)=>t.classList.toggle('on',ids[i]===id));
+  document.querySelectorAll('.rpp').forEach(p=>p.classList.toggle('on',p.id==='rp-'+id));
+}
+
+// ── MAP
+const MLBLS={usmap:'U.S. SITUATION MAP',flights:'LIVE FLIGHTS — ADS-B',ships:'AIS SHIP TRACKING',weather:'WEATHER RADAR — WINDY',fires:'WILDFIRE — NASA FIRMS',quakes:'SEISMIC — USGS',wind:'WIND MAP — WINDY',traffic:'U.S. LIVE TRAFFIC',hurricanes:'HURRICANE TRACK — NHC',satellite:'SATELLITE — WINDY'};
+function sw(id){
+  document.querySelectorAll('.mtab').forEach(t=>{const k=t.getAttribute('onclick')?.match(/sw\('(\w+)'\)/)?.[1];t.classList.toggle('on',k===id);});
+  document.querySelectorAll('.mf').forEach(f=>f.classList.toggle('on',f.id==='map-'+id));
+  const l=document.getElementById('mlt');if(l)l.textContent=(MLBLS[id]||'LIVE MAP')+' — LIVE';
+  document.getElementById('app')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── CAM TABS
+function swCam(id){
+  document.querySelectorAll('.cam-tab').forEach(t=>{const k=t.getAttribute('onclick')?.match(/swCam\('(\w+)'\)/)?.[1];t.classList.toggle('on',k===id);});
+  document.querySelectorAll('.cam-panel').forEach(p=>p.classList.toggle('on',p.id==='cam-'+id));
+}
+
+// ── MODAL
+function opnMod(src,title){
+  document.getElementById('modal-frame').src=src;
+  document.getElementById('mi-title').textContent=title||'';
+  document.getElementById('modal').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeMod(){
+  document.getElementById('modal').classList.remove('on');
+  document.getElementById('modal-frame').src='';
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMod();});
+
+// ── MINIMIZE / MAXIMIZE
+function toggleMin(btn){
+  const sec=btn.closest('.drag-section');
+  const minimized=sec.classList.toggle('minimized');
+  btn.textContent=minimized?'▶':'▼';
+  btn.title=minimized?'Maximize':'Minimize';
+  saveLayout();
+}
+
+// ── OPEN ALL TV
+function openAllTV(){
+  alert('Tip: Click any channel thumbnail above to expand it full screen.');
+}
+
+// ── CUSTOMIZE / DRAG AND DROP
+let customizeMode=false;
+let dragSrc=null;
+
+function toggleCustomize(){
+  customizeMode=!customizeMode;
+  document.getElementById('cust-btn').classList.toggle('on',customizeMode);
+  document.getElementById('customize-bar').classList.toggle('on',customizeMode);
+  document.body.classList.toggle('customize-mode',customizeMode);
+  if(customizeMode)initDrag();else removeDrag();
+}
+
+function initDrag(){
+  document.querySelectorAll('.drag-section').forEach(sec=>{
+    const handle=sec.querySelector('.sec-bar');
+    handle.setAttribute('draggable','true');
+    handle.addEventListener('dragstart',onDragStart);
+    handle.addEventListener('dragend',onDragEnd);
+    sec.addEventListener('dragover',onDragOver);
+    sec.addEventListener('dragleave',onDragLeave);
+    sec.addEventListener('drop',onDrop);
+  });
+}
+
+function removeDrag(){
+  document.querySelectorAll('.drag-section').forEach(sec=>{
+    const handle=sec.querySelector('.sec-bar');
+    handle.removeAttribute('draggable');
+    handle.removeEventListener('dragstart',onDragStart);
+    handle.removeEventListener('dragend',onDragEnd);
+    sec.removeEventListener('dragover',onDragOver);
+    sec.removeEventListener('dragleave',onDragLeave);
+    sec.removeEventListener('drop',onDrop);
+  });
+}
+
+function onDragStart(e){
+  dragSrc=this.closest('.drag-section');
+  dragSrc.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',dragSrc.id);
+}
+function onDragEnd(){
+  document.querySelectorAll('.drag-section').forEach(s=>{s.classList.remove('dragging','drag-over');});
+  dragSrc=null;
+}
+function onDragOver(e){
+  e.preventDefault();e.dataTransfer.dropEffect='move';
+  if(this!==dragSrc)this.classList.add('drag-over');
+}
+function onDragLeave(){this.classList.remove('drag-over');}
+function onDrop(e){
+  e.preventDefault();
+  const target=this;
+  target.classList.remove('drag-over');
+  if(dragSrc&&dragSrc!==target){
+    const fp=document.getElementById('fullpage');
+    const sections=[...fp.querySelectorAll('.drag-section')];
+    const srcIdx=sections.indexOf(dragSrc);
+    const tgtIdx=sections.indexOf(target);
+    if(srcIdx<tgtIdx){target.after(dragSrc);}else{target.before(dragSrc);}
+    saveLayout();
+  }
+}
+
+function saveLayout(){
+  try{
+    const fp=document.getElementById('fullpage');
+    const order=[...fp.querySelectorAll('.drag-section')].map(s=>s.id);
+    const mins=[...fp.querySelectorAll('.drag-section.minimized')].map(s=>s.id);
+    localStorage.setItem('sr-order',JSON.stringify(order));
+    localStorage.setItem('sr-mins',JSON.stringify(mins));
+  }catch(e){}
+}
+
+function loadLayout(){
+  try{
+    const order=JSON.parse(localStorage.getItem('sr-order')||'null');
+    const mins=JSON.parse(localStorage.getItem('sr-mins')||'[]');
+    if(order&&order.length){
+      const fp=document.getElementById('fullpage');
+      order.forEach(id=>{const el=document.getElementById(id);if(el)fp.appendChild(el);});
+    }
+    mins.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){
+        el.classList.add('minimized');
+        const btn=el.querySelector('.sec-ctrl-btn');
+        if(btn){btn.textContent='▶';btn.title='Maximize';}
+      }
+    });
+  }catch(e){}
+}
+
+function resetOrder(){
+  try{localStorage.removeItem('sr-order');localStorage.removeItem('sr-mins');}catch(e){}
+  location.reload();
+}
+
+loadLayout();
+
+// ── USGS QUAKES
+function tAgo(ms){const d=Math.floor((Date.now()-ms)/60000);if(d<1)return'now';if(d<60)return d+'m';if(d<1440)return Math.floor(d/60)+'h';return Math.floor(d/1440)+'d';}
+async function loadQ(){
+  try{
+    const r=await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.5_day.geojson');
+    const d=await r.json();
+    const el=document.getElementById('bc-q');
+    if(el)el.textContent=d.features.length;
+    const ql=document.getElementById('qlist');
+    if(ql)ql.innerHTML=d.features.slice(0,25).map(q=>{
+      const m=parseFloat(q.properties.mag||0).toFixed(1);
+      const cls=m>=6?'l':m>=4?'m':'s';
+      return`<div class="qi"><div class="qm ${cls}">M${m}</div><div><div class="ql">${q.properties.place||'Unknown'}</div><div class="qmt">${tAgo(q.properties.time)}</div></div></div>`;
+    }).join('');
+  }catch(e){}
+}
+loadQ();
+
+// ── NWS ALERTS
+async function loadWX(){try{const r=await fetch('https://api.weather.gov/alerts/active/count');const d=await r.json();const el=document.getElementById('bc-wx');if(el)el.textContent=(d.total||'—').toLocaleString();}catch(e){}}
+loadWX();
+
+// ── NEWS RSS
+function nHTML(items){return items.map(i=>`<div class="ni"><div class="nm"><span class="nt ${i.cls}">${i.tag}</span><span class="ntime">${tAgo(new Date(i.pub))}</span></div><a class="nh" href="${i.link}" target="_blank" rel="noopener">${i.title}</a><div class="nsrc">${i.src}</div></div>`).join('');}
+const F1=[{url:'https://feeds.foxnews.com/foxnews/national',src:'Fox News',tag:'politics',cls:'tr'},{url:'https://nypost.com/feed/',src:'NY Post',tag:'breaking',cls:'ta'},{url:'https://www.breitbart.com/feed/',src:'Breitbart',tag:'national',cls:'tr'}];
+const F2=[{url:'https://feeds.npr.org/1001/rss.xml',src:'NPR',tag:'news',cls:'tg'},{url:'https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml',src:'NYT',tag:'politics',cls:'tb'},{url:'https://www.politico.com/rss/politics08.xml',src:'Politico',tag:'congress',cls:'tb'}];
+async function ldFeed(feeds,elId,max){
+  const el=document.getElementById(elId);let all=[];
+  for(const f of feeds){try{const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(f.url));const d=await r.json();const xml=new DOMParser().parseFromString(d.contents,'text/xml');Array.from(xml.querySelectorAll('item')).slice(0,7).forEach(item=>{let link=item.querySelector('link')?.textContent?.trim()||'#';if(!link||link==='')link=item.querySelector('link')?.nextSibling?.textContent?.trim()||'#';all.push({title:item.querySelector('title')?.textContent||'',link,pub:item.querySelector('pubDate')?.textContent||'',src:f.src,tag:f.tag,cls:f.cls});});}catch(e){}}
+  all.sort((a,b)=>new Date(b.pub)-new Date(a.pub));
+  if(el)el.innerHTML=all.slice(0,max).length?nHTML(all.slice(0,max)):'<div style="padding:12px;font-family:var(--mono);font-size:8px;color:var(--muted);">Feed unavailable</div>';
+}
+ldFeed(F1,'nf-main',14);ldFeed(F2,'nf-sec',12);
+
+// ── MARKETS
+async function ldMkts(){
+  try{
+    const syms=['%5EDJI','%5EGSPC','%5EIXIC','BTC-USD','ETH-USD','CL%3DF','GC%3DF','%5ETNX','EURUSD%3DX','NG%3DF'];
+    const url='https://query1.finance.yahoo.com/v7/finance/quote?symbols='+syms.join(',');
+    const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url));
+    const d=await r.json();
+    const res=JSON.parse(d.contents)?.quoteResponse?.result||[];
+    const MAP={'^DJI':['m-dow','m-dow-c'],'^GSPC':['m-sp','m-sp-c'],'^IXIC':['m-nq','m-nq-c'],'BTC-USD':['m-btc','m-btc-c'],'ETH-USD':['m-eth','m-eth-c'],'CL=F':['m-oil','m-oil-c'],'GC=F':['m-gold','m-gold-c'],'^TNX':['m-10y','m-10y-c'],'EURUSD=X':['m-fx','m-fx-c'],'NG=F':['m-gas','m-gas-c']};
+    res.forEach(q=>{
+      const m=MAP[q.symbol];if(!m)return;
+      const p=q.regularMarketPrice,c=q.regularMarketChangePercent;
+      const fmt=['BTC-USD','ETH-USD','GC=F'].includes(q.symbol)?'$'+p.toLocaleString('en-US',{maximumFractionDigits:0}):['CL=F','NG=F'].includes(q.symbol)?'$'+p.toFixed(2):q.symbol==='^TNX'?p.toFixed(3)+'%':'EURUSD=X'===q.symbol?p.toFixed(4):p.toLocaleString('en-US',{maximumFractionDigits:0});
+      const ve=document.getElementById(m[0]),ce=document.getElementById(m[1]);
+      if(ve)ve.textContent=fmt;
+      if(ce){ce.textContent=(c>=0?'+':'')+c.toFixed(2)+'%';ce.className='mc-c '+(c>0?'up':c<0?'dn':'fl');}
+    });
+  }catch(e){}
+}
+ldMkts();setInterval(ldMkts,60000);
+</script>
+</body>
+</html>
