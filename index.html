@@ -1,2038 +1,335 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-<meta name="description" content="327 Media Situation Room — America's most powerful real-time intelligence dashboard. Live maps, news, markets, global cams & more."/>
+<meta name="description" content="327 Media Situation Room - live world map, alerts, markets, weather, flights, ships, and friendly simple mode."/>
 <title>327 Media | Situation Room</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Barlow:wght@300;400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-/* ═══════════════════════════════════════════════════
-   ROOT VARIABLES
-═══════════════════════════════════════════════════ */
-:root {
-  --bg: #06080f;
-  --bg2: #090b14;
-  --bg3: #0d1020;
-  --panel: #0b0d1a;
-  --card: #0f1221;
-  --bdr: #1a2235;
-  --bdr2: #243048;
-  --red: #cc0000;
-  --rb: #ff2828;
-  --rd: #5a0000;
-  --amber: #e07b00;
-  --amber-l: #ffa500;
-  --green: #14a044;
-  --gb: #1fcc5a;
-  --blue: #1a56db;
-  --bb: #4b8ef8;
-  --cyan: #00c4d4;
-  --purple: #8b5cf6;
-  --text: #b0c4de;
-  --dim: #4a6080;
-  --muted: #1e2e45;
-  --white: #e8f2ff;
-  --gold: #f5c842;
-  --mono: 'Share Tech Mono', monospace;
-  --disp: 'Bebas Neue', sans-serif;
-  --cond: 'Barlow Condensed', sans-serif;
-  --body: 'Barlow', sans-serif;
-  --radius: 3px;
-  --shadow: 0 4px 24px rgba(0,0,0,.6);
+:root{
+  --bg:#06080f;--bg2:#090b14;--bg3:#0d1020;--panel:#0b0d1a;--card:#101421;
+  --bdr:#1b2638;--bdr2:#28364f;--red:#cc0000;--rb:#ff2828;--rd:#5a0000;
+  --amber:#e07b00;--amber-l:#ffa500;--green:#14a044;--gb:#1fcc5a;--bb:#4b8ef8;
+  --cyan:#00c4d4;--purple:#8b5cf6;--text:#b0c4de;--dim:#667895;--muted:#33465f;
+  --white:#e8f2ff;--gold:#f5c842;--mono:'Share Tech Mono',monospace;--disp:'Bebas Neue',sans-serif;
+  --cond:'Barlow Condensed',sans-serif;--body:'Barlow',sans-serif;--radius:4px;--shadow:0 18px 50px rgba(0,0,0,.45);
 }
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.55;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+iframe{display:block}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--rd);border-radius:4px}
+body.advanced-mode::after{content:"";position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.045) 3px,rgba(0,0,0,.045) 4px);pointer-events:none;z-index:9999}
 
-/* ═══════════════════════════════════════════════════
-   RESET & BASE
-═══════════════════════════════════════════════════ */
-*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--text); font-family: var(--body); font-size: 15px; line-height: 1.55; overflow-x: hidden; }
-a { color: inherit; text-decoration: none; }
-button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
-iframe { display: block; }
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: var(--rd); border-radius: 2px; }
-body::after { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.04) 3px,rgba(0,0,0,.04) 4px); pointer-events: none; z-index: 9999; }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes pulseR{0%,100%{box-shadow:0 0 0 0 rgba(255,40,40,.55)}70%{box-shadow:0 0 0 11px rgba(255,40,40,0)}}
+@keyframes pulseA{0%,100%{box-shadow:0 0 0 0 rgba(255,165,0,.5)}70%{box-shadow:0 0 0 10px rgba(255,165,0,0)}}
+@keyframes pulseG{0%,100%{box-shadow:0 0 0 0 rgba(31,204,90,.4)}70%{box-shadow:0 0 0 8px rgba(31,204,90,0)}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ═══════════════════════════════════════════════════
-   ANIMATIONS
-═══════════════════════════════════════════════════ */
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-@keyframes pulsR { 0%,100%{box-shadow:0 0 0 0 rgba(204,0,0,.6)} 60%{box-shadow:0 0 0 9px rgba(204,0,0,0)} }
-@keyframes pulsA { 0%,100%{box-shadow:0 0 0 0 rgba(224,123,0,.6)} 60%{box-shadow:0 0 0 9px rgba(224,123,0,0)} }
-@keyframes pulsG { 0%,100%{box-shadow:0 0 0 0 rgba(20,160,68,.5)} 60%{box-shadow:0 0 0 7px rgba(20,160,68,0)} }
-@keyframes ticker { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-@keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-@keyframes spin { to{transform:rotate(360deg)} }
-@keyframes glowRed { 0%,100%{text-shadow:0 0 8px rgba(204,0,0,.4)} 50%{text-shadow:0 0 20px rgba(255,40,40,.9)} }
-@keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+body.simple-mode{
+  --bg:#f4f7fb;--bg2:#ffffff;--bg3:#eef4fb;--panel:#ffffff;--card:#ffffff;
+  --bdr:#d9e4f0;--bdr2:#c9d8e8;--text:#314155;--dim:#62748a;--muted:#8da0b5;
+  --white:#172235;--red:#d71920;--rb:#e92e35;--rd:#ffd9dd;--amber:#d88917;--amber-l:#e8a22a;
+  --green:#1f9b57;--gb:#21b765;--bb:#2771d8;--cyan:#008da0;--purple:#7656d8;
+}
+body.simple-mode .advanced-only{display:none!important}
+body.advanced-mode .simple-only{display:none!important}
+body.simple-mode body::after{display:none}
 
-/* ═══════════════════════════════════════════════════
-   MODE TOGGLE
-═══════════════════════════════════════════════════ */
-body.simple-mode .advanced-only { display: none !important; }
-body.advanced-mode .simple-only { display: none !important; }
+#ticker-bar{height:26px;background:linear-gradient(90deg,#960000,var(--red));color:#fff;font-family:var(--mono);font-size:11px;letter-spacing:.06em;display:flex;align-items:center;overflow:hidden;white-space:nowrap;position:sticky;top:0;z-index:1200;border-bottom:1px solid rgba(255,255,255,.16)}
+.ticker-pfx{height:100%;display:flex;align-items:center;gap:7px;padding:0 14px;background:rgba(0,0,0,.28);font-weight:700;letter-spacing:.14em;flex-shrink:0}
+.ticker-dot,.live-dot,.blink-dot{border-radius:50%;background:#fff;animation:blink .9s step-end infinite}
+.ticker-dot{width:7px;height:7px}.ticker-scroll{display:inline-flex;animation:ticker 90s linear infinite}.ticker-scroll span{padding:0 42px}.ticker-scroll span::before{content:"* ";opacity:.55}
+body.simple-mode #ticker-bar{height:34px;background:linear-gradient(90deg,#d71920,#f05a42);font-size:12px}
 
-/* ═══════════════════════════════════════════════════
-   ALERT TICKER
-═══════════════════════════════════════════════════ */
-#ticker-bar {
-  background: linear-gradient(90deg, #a00000, var(--red));
-  color: #fff;
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: .06em;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  white-space: nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 1200;
-  border-bottom: 1px solid rgba(255,80,80,.4);
-}
-.ticker-pfx {
-  flex-shrink: 0;
-  background: rgba(0,0,0,.35);
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 14px;
-  border-right: 1px solid rgba(255,255,255,.15);
-  font-weight: 700;
-  letter-spacing: .14em;
-}
-.ticker-dot { width: 7px; height: 7px; background: #fff; border-radius: 50%; animation: blink .9s step-end infinite; }
-.ticker-scroll { display: inline-flex; animation: ticker 100s linear infinite; }
-.ticker-scroll span { padding: 0 48px; }
-.ticker-scroll span::before { content: '◆ '; opacity: .5; }
+#site-header{height:58px;background:rgba(6,8,15,.98);border-bottom:2px solid var(--red);position:sticky;top:26px;z-index:1100}
+.header-inner{height:100%;padding:0 18px;display:flex;align-items:center;gap:14px}
+.logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo-badge{background:var(--red);color:#fff;font-family:var(--disp);font-size:23px;line-height:1;padding:4px 12px 2px;clip-path:polygon(0 0,100% 0,93% 100%,0 100%)}
+.logo-name{font-family:var(--disp);font-size:18px;letter-spacing:.1em;color:var(--white);line-height:1}.logo-sub{font-family:var(--mono);font-size:8px;letter-spacing:.18em;color:var(--red);text-transform:uppercase}
+#main-nav{display:flex;align-items:center;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}#main-nav::-webkit-scrollbar{display:none}
+.nav-btn{font-family:var(--cond);font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);padding:7px 12px;border-bottom:2px solid transparent;white-space:nowrap;transition:.15s;flex-shrink:0}
+.nav-btn:hover,.nav-btn.on{color:var(--white);border-bottom-color:var(--red)}
+.nav-sep{width:1px;height:20px;background:var(--bdr);margin:0 4px;flex-shrink:0}
+.header-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.mode-toggle{display:flex;border:1px solid var(--bdr2);border-radius:var(--radius);overflow:hidden}
+.mode-btn{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.1em;padding:6px 11px;color:var(--dim)}
+.mode-btn.on{background:var(--red);color:#fff}
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(204,0,0,.12);border:1px solid rgba(204,0,0,.35);padding:5px 10px;border-radius:var(--radius);font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--rb)}
+.live-dot{width:7px;height:7px;background:var(--rb);animation:pulseR 1.4s ease infinite}
+#site-clock{font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap}
 
-/* ═══════════════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════════════ */
-#site-header {
-  background: rgba(6,8,15,.98);
-  border-bottom: 2px solid var(--red);
-  position: sticky;
-  top: 26px;
-  z-index: 1100;
-  height: 58px;
-}
-.header-inner {
-  height: 100%;
-  padding: 0 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  max-width: 100%;
-}
+body.simple-mode #site-header{top:34px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--bdr);box-shadow:0 10px 30px rgba(31,48,70,.08)}
+body.simple-mode .logo-sub{color:var(--dim)}
+body.simple-mode .nav-btn{text-transform:none;font-size:15px;letter-spacing:0;font-family:var(--body);font-weight:700}
 
-/* LOGO */
-.logo { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.logo-badge {
-  background: var(--red);
-  color: #fff;
-  font-family: var(--disp);
-  font-size: 22px;
-  letter-spacing: .02em;
-  padding: 4px 12px 2px;
-  clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-  line-height: 1;
-}
-.logo-text .logo-name { font-family: var(--disp); font-size: 17px; letter-spacing: .1em; color: var(--white); line-height: 1; }
-.logo-text .logo-sub { font-family: var(--mono); font-size: 8px; letter-spacing: .2em; color: var(--red); text-transform: uppercase; }
+#threat-bar{height:38px;background:var(--bg2);border-bottom:1px solid var(--bdr);padding:0 18px;display:flex;align-items:center;gap:16px}
+.threat-label{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;flex-shrink:0}
+.threat-levels{display:flex;gap:3px}.tl{font-family:var(--cond);font-size:11px;font-weight:800;letter-spacing:.1em;padding:3px 11px;text-transform:uppercase;opacity:.22;border:1px solid transparent;border-radius:var(--radius)}
+.tl.on{opacity:1;border-color:currentColor}.tl-lo{color:var(--gb)}.tl-gu{color:#38bdf8}.tl-el{color:var(--amber-l)}.tl-hi,.tl-sv{color:var(--rb)}.tl-el.on{animation:pulseA 2s ease infinite}
+.threat-msg{font-family:var(--mono);font-size:9px;color:var(--amber-l);margin-left:auto;white-space:nowrap}
+body.simple-mode #threat-bar{height:auto;padding:10px 18px;gap:10px;flex-wrap:wrap}.simple-status{display:flex;gap:8px;align-items:center;font-weight:700;color:var(--white)}
 
-/* NAV */
-#main-nav { display: flex; align-items: center; flex: 1; overflow-x: auto; scrollbar-width: none; gap: 2px; }
-#main-nav::-webkit-scrollbar { display: none; }
-.nav-btn {
-  font-family: var(--cond);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--dim);
-  padding: 6px 12px;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-  transition: color .14s, border-color .14s;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-.nav-btn:hover, .nav-btn.on { color: var(--white); border-bottom-color: var(--red); }
-.nav-sep { width: 1px; height: 20px; background: var(--bdr); flex-shrink: 0; margin: 0 4px; }
+#market-strip{height:36px;background:var(--bg3);border-bottom:1px solid var(--bdr);display:flex;overflow-x:auto;scrollbar-width:none}
+#market-strip::-webkit-scrollbar{display:none}.mchip{display:flex;align-items:center;gap:9px;min-width:104px;padding:0 15px;border-right:1px solid var(--bdr);flex-shrink:0}.mchip-name{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.mchip-val{font-family:var(--cond);font-size:15px;font-weight:800;color:var(--white)}.mchip-chg{font-family:var(--mono);font-size:9px}.up{color:var(--gb)}.dn{color:var(--rb)}.fl{color:var(--dim)}
+body.simple-mode #market-strip{height:auto;padding:8px;background:#fff}.simple-market-note{padding:0 14px;color:var(--dim);font-weight:600;display:flex;align-items:center}
 
-/* HEADER RIGHT */
-.header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.mode-toggle {
-  display: flex;
-  border: 1px solid var(--bdr2);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-.mode-btn {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  padding: 5px 11px;
-  color: var(--dim);
-  transition: all .14s;
-  cursor: pointer;
-}
-.mode-btn.on { background: var(--red); color: #fff; }
-.mode-btn:not(.on):hover { color: var(--white); }
-.live-badge {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(204,0,0,.12);
-  border: 1px solid rgba(204,0,0,.35);
-  padding: 4px 10px;
-  border-radius: var(--radius);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .15em;
-}
-.live-dot { width: 7px; height: 7px; background: var(--rb); border-radius: 50%; animation: pulsR 1.4s ease infinite; }
-.live-badge span { color: var(--rb); }
-#site-clock { font-family: var(--mono); font-size: 10px; color: var(--dim); white-space: nowrap; }
-.customize-btn {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  border: 1px solid var(--bdr2);
-  padding: 5px 12px;
-  border-radius: var(--radius);
-  color: var(--dim);
-  transition: all .14s;
-}
-.customize-btn:hover, .customize-btn.on { color: var(--white); border-color: var(--red); background: rgba(204,0,0,.1); }
+#app-layout{display:grid;grid-template-columns:280px 1fr 320px;height:calc(100vh - 26px - 58px - 38px - 36px);min-height:520px}
+#left-sidebar,#right-panel{background:var(--bg2);display:flex;flex-direction:column;overflow:hidden}
+#left-sidebar{border-right:1px solid var(--bdr)}#right-panel{border-left:1px solid var(--bdr)}
+.sidebar-tabs,.rp-tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--bdr);flex-shrink:0;overflow-x:auto;scrollbar-width:none}.sidebar-tab,.rp-tab{font-family:var(--cond);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;color:var(--dim);border-bottom:2px solid transparent;cursor:pointer;text-align:center}.sidebar-tab{flex:1}.rp-tab{flex-shrink:0;padding:10px 11px}.sidebar-tab.on,.rp-tab.on{color:var(--rb);border-bottom-color:var(--red)}
+.sidebar-panel,.rp-panel{display:none;overflow-y:auto;flex:1}.sidebar-panel.on,.rp-panel.on{display:block}
+.panel-section-hdr{font-family:var(--mono);font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:8px 12px 6px;border-bottom:1px solid var(--bdr);background:rgba(11,13,26,.72)}
+.news-item,.alert-item{padding:10px 12px;border-bottom:1px solid var(--bdr);animation:fadeUp .25s ease both}.news-item:hover{background:rgba(255,255,255,.035)}.news-meta{display:flex;gap:6px;align-items:center;margin-bottom:4px}.news-tag{font-family:var(--mono);font-size:8px;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border:1px solid;border-radius:2px}.tag-r{color:var(--rb);background:rgba(204,0,0,.08);border-color:rgba(204,0,0,.4)}.tag-a{color:var(--amber-l);background:rgba(224,123,0,.08);border-color:rgba(224,123,0,.4)}.tag-b{color:var(--bb);background:rgba(75,142,248,.08);border-color:rgba(75,142,248,.4)}.tag-g{color:var(--dim);border-color:var(--bdr2)}.news-time,.news-source,.alert-meta{font-family:var(--mono);font-size:8px;color:var(--muted)}.news-time{margin-left:auto}.news-headline,.alert-title{font-family:var(--cond);font-size:13px;font-weight:700;color:var(--white);line-height:1.3}
+.alert-item{display:flex;gap:10px}.alert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}.ad-red{background:var(--rb);animation:pulseR 1.4s ease infinite}.ad-amber{background:var(--amber-l);animation:pulseA 1.8s ease infinite}.ad-blue{background:var(--bb)}.ad-cyan{background:var(--cyan)}
 
-/* ═══════════════════════════════════════════════════
-   THREAT LEVEL BAR
-═══════════════════════════════════════════════════ */
-#threat-bar {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--bdr);
-  padding: 0 18px;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: nowrap;
-}
-.threat-label { font-family: var(--mono); font-size: 9px; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; flex-shrink: 0; }
-.threat-levels { display: flex; gap: 3px; }
-.tl {
-  font-family: var(--cond);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .1em;
-  padding: 3px 11px;
-  text-transform: uppercase;
-  opacity: .2;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  transition: opacity .2s;
-}
-.tl.on { opacity: 1; border-color: currentColor; }
-.tl-lo { color: var(--gb); } .tl-gu { color: #38bdf8; } .tl-el { color: var(--amber-l); } .tl-hi { color: #f87171; } .tl-sv { color: var(--rb); }
-.tl-el.on { animation: pulsA 2s ease infinite; }
-.threat-msg { font-family: var(--mono); font-size: 9px; color: var(--amber-l); margin-left: auto; white-space: nowrap; }
+#center-area{display:flex;flex-direction:column;overflow:hidden;background:#04060c}
+#map-tabs-bar{background:var(--bg3);border-bottom:1px solid var(--bdr);display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none;gap:1px;flex-shrink:0}
+#map-tabs-bar::-webkit-scrollbar{display:none}.map-tab-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:72px;padding:8px 14px;font-family:var(--cond);font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--dim);border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0}.map-tab-btn:hover{color:var(--white);background:rgba(255,255,255,.03)}.map-tab-btn.on{color:var(--rb);border-bottom-color:var(--red);background:rgba(204,0,0,.06)}.tab-icon{font-size:16px;line-height:1}
+.map-view-toggle{display:flex;align-items:center;gap:8px;padding:0 12px;margin-left:auto;border-left:1px solid var(--bdr);flex-shrink:0}.mvt-btn{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;border:1px solid var(--bdr2);border-radius:var(--radius);color:var(--dim)}.mvt-btn.on{background:var(--red);border-color:var(--red);color:#fff}.mvt-btn.disabled{opacity:.35;pointer-events:none}
+#map-viewport{position:relative;flex:1;background:#04060c;overflow:hidden}.map-layer{position:absolute;inset:0;width:100%;height:100%;border:0;display:none}.map-layer.on{display:block}
+#world-map,#world-3d{width:100%;height:100%;background:#05070d}
+.leaflet-container{background:#05070d;font-family:var(--body)}.leaflet-tile{filter:saturate(.45) brightness(.62) contrast(1.18) hue-rotate(175deg)}.leaflet-control-attribution{background:rgba(6,8,15,.74)!important;color:var(--dim)!important;font-family:var(--mono);font-size:8px}.leaflet-control-zoom a{background:rgba(6,8,15,.94)!important;color:var(--white)!important;border-color:var(--bdr)!important}
+.intel-marker{width:14px;height:14px;border-radius:999px;border:2px solid rgba(255,255,255,.5);box-shadow:0 0 0 3px rgba(0,0,0,.32),0 0 18px currentColor}.intel-marker.red{background:var(--rb);color:var(--rb);animation:pulseR 1.4s ease infinite}.intel-marker.amber{background:var(--amber-l);color:var(--amber-l);animation:pulseA 1.8s ease infinite}.intel-marker.blue{background:var(--bb);color:var(--bb)}.intel-marker.green{background:var(--gb);color:var(--gb);animation:pulseG 2s ease infinite}.intel-marker.purple{background:var(--purple);color:var(--purple)}.intel-marker.cyan{background:var(--cyan);color:var(--cyan)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:rgba(6,8,15,.96);color:var(--white);border:1px solid var(--bdr2);border-radius:var(--radius)}.leaflet-popup-content{font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase}.war-country{fill:#ff2828;fill-opacity:.38;stroke:#ff5050;stroke-width:1.2}
+#world-3d canvas{display:block;width:100%;height:100%}
+.globe-hint{position:absolute;right:12px;bottom:12px;z-index:6;background:rgba(6,8,15,.9);border:1px solid var(--bdr);padding:7px 10px;border-radius:var(--radius);font-family:var(--mono);font-size:8px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+#map-legend{position:absolute;top:12px;left:12px;z-index:500;background:rgba(6,8,15,.92);border:1px solid var(--bdr);padding:10px 12px;display:flex;flex-direction:column;gap:5px;border-radius:var(--radius)}.legend-item{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:8px;letter-spacing:.08em;color:var(--text);white-space:nowrap}.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+#map-status-label{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:500;display:flex;align-items:center;gap:6px;padding:5px 14px;background:rgba(6,8,15,.9);border:1px solid var(--bdr);border-radius:var(--radius);font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);pointer-events:none;white-space:nowrap}.blink-dot{width:5px;height:5px;background:var(--rb)}
+#data-strip{height:44px;background:var(--bg2);border-top:1px solid var(--bdr);display:flex;overflow-x:auto;scrollbar-width:none;flex-shrink:0}.data-chip{min-width:130px;display:flex;flex-direction:column;justify-content:center;padding:0 14px;border-right:1px solid var(--bdr);flex-shrink:0;cursor:pointer}.data-chip:hover{background:rgba(255,255,255,.03)}.dc-label{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}.dc-val{font-family:var(--cond);font-size:15px;font-weight:800;color:var(--white)}.dc-sub{font-family:var(--mono);font-size:8px;color:var(--muted)}.r{color:var(--rb)!important}.a{color:var(--amber-l)!important}.g{color:var(--gb)!important}.c{color:var(--cyan)!important}
 
-/* ═══════════════════════════════════════════════════
-   MARKET STRIP
-═══════════════════════════════════════════════════ */
-#market-strip {
-  background: var(--bg3);
-  border-bottom: 1px solid var(--bdr);
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-  height: 36px;
-}
-#market-strip::-webkit-scrollbar { display: none; }
-.mchip { display: flex; align-items: center; gap: 10px; padding: 0 16px; border-right: 1px solid var(--bdr); flex-shrink: 0; min-width: 100px; }
-.mchip-name { font-family: var(--mono); font-size: 8px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
-.mchip-val { font-family: var(--cond); font-size: 15px; font-weight: 700; color: var(--white); }
-.mchip-chg { font-family: var(--mono); font-size: 9px; }
-.up { color: var(--gb); } .dn { color: var(--rb); } .fl { color: var(--dim); }
+.simple-dashboard{display:none}
+body.simple-mode #app-layout{display:block;height:auto;min-height:0}
+body.simple-mode #left-sidebar,body.simple-mode #right-panel,body.simple-mode #data-strip{display:none}
+body.simple-mode #center-area{height:520px;margin:12px;border:1px solid var(--bdr);border-radius:14px;overflow:hidden;box-shadow:0 18px 45px rgba(31,48,70,.1)}
+body.simple-mode #map-tabs-bar .map-tab-btn:not(:first-child){display:none}
+body.simple-mode #map-tabs-bar{background:#fff}.simple-dashboard{padding:12px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;background:var(--bg)}
+.simple-card{background:#fff;border:1px solid var(--bdr);border-radius:14px;padding:16px;box-shadow:0 12px 28px rgba(31,48,70,.07)}.simple-card h3{font-size:18px;color:var(--white);margin-bottom:6px}.simple-card p{color:var(--dim);font-size:14px}.simple-card strong{color:var(--red)}body.advanced-mode .simple-dashboard{display:none}
 
-/* ═══════════════════════════════════════════════════
-   APP LAYOUT
-═══════════════════════════════════════════════════ */
-#app-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr 320px;
-  height: calc(100vh - 26px - 58px - 38px - 36px);
-  min-height: 500px;
-}
-
-/* ═══════════════════════════════════════════════════
-   LEFT SIDEBAR
-═══════════════════════════════════════════════════ */
-#left-sidebar {
-  background: var(--bg2);
-  border-right: 1px solid var(--bdr);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.sidebar-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--bdr);
-  flex-shrink: 0;
-  background: var(--panel);
-}
-.sidebar-tab {
-  flex: 1;
-  font-family: var(--cond);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  padding: 9px 4px;
-  text-align: center;
-  color: var(--dim);
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: color .14s, border-color .14s;
-}
-.sidebar-tab.on { color: var(--rb); border-bottom-color: var(--red); }
-.sidebar-panel { flex: 1; overflow-y: auto; display: none; }
-.sidebar-panel.on { display: block; }
-.panel-section-hdr {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 7px 12px 5px;
-  border-bottom: 1px solid var(--bdr);
-  background: rgba(11,13,26,.8);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* NEWS ITEMS */
-.news-item {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--bdr);
-  cursor: pointer;
-  transition: background .12s;
-  animation: fadeUp .25s ease both;
-}
-.news-item:hover { background: rgba(255,255,255,.025); }
-.news-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
-.news-tag {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border: 1px solid;
-  border-radius: 2px;
-}
-.tag-r { color: var(--rb); border-color: rgba(204,0,0,.4); background: rgba(204,0,0,.08); }
-.tag-a { color: var(--amber-l); border-color: rgba(224,123,0,.4); background: rgba(224,123,0,.08); }
-.tag-b { color: var(--bb); border-color: rgba(75,142,248,.4); background: rgba(75,142,248,.08); }
-.tag-g { color: var(--dim); border-color: var(--bdr2); }
-.news-time { font-family: var(--mono); font-size: 8px; color: var(--muted); margin-left: auto; }
-.news-headline { font-family: var(--cond); font-size: 13px; font-weight: 600; color: var(--white); line-height: 1.3; display: block; transition: color .12s; }
-.news-headline:hover { color: var(--rb); }
-.news-source { font-family: var(--mono); font-size: 8px; color: var(--muted); margin-top: 2px; }
-
-/* ALERT ITEMS */
-.alert-item { padding: 10px 12px; border-bottom: 1px solid var(--bdr); display: flex; gap: 10px; }
-.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-.ad-red { background: var(--rb); animation: pulsR 1.4s ease infinite; }
-.ad-amber { background: var(--amber-l); animation: pulsA 1.8s ease infinite; }
-.ad-blue { background: var(--bb); }
-.ad-cyan { background: var(--cyan); }
-.ad-green { background: var(--gb); animation: pulsG 2s ease infinite; }
-.alert-title { font-family: var(--cond); font-size: 13px; font-weight: 700; color: var(--white); line-height: 1.3; }
-.alert-meta { font-family: var(--mono); font-size: 8px; color: var(--muted); margin-top: 2px; }
-
-/* INTEL ITEMS */
-.intel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--bdr); margin: 10px; }
-.intel-stat { background: var(--card); padding: 10px; text-align: center; }
-.intel-val { font-family: var(--disp); font-size: 22px; line-height: 1; color: var(--white); }
-.intel-lbl { font-family: var(--mono); font-size: 7px; letter-spacing: .13em; text-transform: uppercase; color: var(--dim); margin-top: 3px; }
-.intel-val.r { color: var(--rb); } .intel-val.a { color: var(--amber-l); } .intel-val.g { color: var(--gb); } .intel-val.c { color: var(--cyan); }
-.intel-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-bottom: 1px solid var(--bdr); font-family: var(--cond); font-size: 12px; }
-.intel-row:last-child { border-bottom: none; }
-.intel-key { color: var(--dim); font-weight: 600; }
-.intel-v { font-family: var(--mono); font-size: 9px; color: var(--white); }
-.iv-r { color: var(--rb); } .iv-a { color: var(--amber-l); } .iv-g { color: var(--gb); }
-
-/* QUAKE ITEMS */
-.quake-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--bdr); }
-.quake-mag { font-family: var(--disp); font-size: 22px; width: 44px; text-align: center; flex-shrink: 0; line-height: 1; }
-.qm-s { color: var(--gb); } .qm-m { color: var(--amber-l); } .qm-l { color: var(--rb); }
-.quake-loc { font-family: var(--cond); font-size: 12px; font-weight: 600; color: var(--white); line-height: 1.3; }
-.quake-time { font-family: var(--mono); font-size: 8px; color: var(--muted); }
-
-/* ═══════════════════════════════════════════════════
-   CENTER — MAP AREA
-═══════════════════════════════════════════════════ */
-#center-area { display: flex; flex-direction: column; overflow: hidden; }
-
-/* MAP LAYER TABS */
-#map-tabs-bar {
-  background: var(--bg3);
-  border-bottom: 1px solid var(--bdr);
-  display: flex;
-  align-items: stretch;
-  flex-shrink: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  gap: 1px;
-  padding: 0;
-}
-#map-tabs-bar::-webkit-scrollbar { display: none; }
-.map-tab-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 8px 14px;
-  font-family: var(--cond);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  color: var(--dim);
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: color .14s, border-color .14s, background .14s;
-  min-width: 72px;
-}
-.map-tab-btn .tab-icon { font-size: 16px; line-height: 1; }
-.map-tab-btn:hover { color: var(--white); background: rgba(255,255,255,.03); }
-.map-tab-btn.on { color: var(--rb); border-bottom-color: var(--red); background: rgba(204,0,0,.06); }
-
-/* MAP / GLOBE TOGGLE */
-.map-view-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 12px;
-  margin-left: auto;
-  flex-shrink: 0;
-  border-left: 1px solid var(--bdr);
-}
-.mvt-btn {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border: 1px solid var(--bdr2);
-  border-radius: var(--radius);
-  color: var(--dim);
-  cursor: pointer;
-  transition: all .14s;
-}
-.mvt-btn.on { background: var(--red); color: #fff; border-color: var(--red); }
-.mvt-btn:not(.on):hover { color: var(--white); border-color: var(--white); }
-
-/* MAP AREA */
-#map-viewport { flex: 1; position: relative; background: #04060c; overflow: hidden; }
-.map-layer { width: 100%; height: 100%; border: none; display: none; position: absolute; inset: 0; }
-.map-layer.on { display: block; }
-
-/* 2D INTEL OVERLAY */
-#map-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 10;
-}
-.map-dot {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid rgba(255,255,255,.3);
-  transform: translate(-50%,-50%);
-  cursor: pointer;
-  pointer-events: all;
-  transition: transform .15s;
-}
-.map-dot:hover { transform: translate(-50%,-50%) scale(1.5); z-index: 20; }
-.map-dot::after {
-  content: attr(data-label);
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--mono);
-  font-size: 7px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  background: rgba(6,8,15,.92);
-  color: var(--white);
-  padding: 2px 6px;
-  border: 1px solid var(--bdr);
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity .15s;
-  pointer-events: none;
-}
-.map-dot:hover::after { opacity: 1; }
-.dot-red { background: var(--rb); animation: pulsR 1.4s ease infinite; }
-.dot-amber { background: var(--amber-l); animation: pulsA 1.8s ease infinite; }
-.dot-green { background: var(--gb); animation: pulsG 2s ease infinite; }
-.dot-blue { background: var(--bb); }
-.dot-purple { background: var(--purple); }
-.dot-gold { background: var(--gold); }
-.dot-cyan { background: var(--cyan); }
-
-/* MAP LABEL */
-#map-status-label {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--dim);
-  background: rgba(6,8,15,.9);
-  padding: 4px 14px;
-  border: 1px solid var(--bdr);
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  border-radius: var(--radius);
-}
-#map-status-label .blink-dot { width: 5px; height: 5px; background: var(--rb); border-radius: 50%; animation: blink .9s step-end infinite; }
-
-/* MAP LEGEND */
-#map-legend {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  background: rgba(6,8,15,.92);
-  border: 1px solid var(--bdr);
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  border-radius: var(--radius);
-}
-.legend-item { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 8px; letter-spacing: .08em; color: var(--text); white-space: nowrap; }
-.legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-
-/* BOTTOM DATA STRIP */
-#data-strip {
-  background: var(--bg2);
-  border-top: 1px solid var(--bdr);
-  display: flex;
-  overflow-x: auto;
-  scrollbar-width: none;
-  flex-shrink: 0;
-  height: 44px;
-}
-#data-strip::-webkit-scrollbar { display: none; }
-.data-chip {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0 14px;
-  border-right: 1px solid var(--bdr);
-  flex-shrink: 0;
-  min-width: 130px;
-  cursor: pointer;
-  transition: background .14s;
-}
-.data-chip:hover { background: rgba(255,255,255,.03); }
-.dc-label { font-family: var(--mono); font-size: 8px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
-.dc-val { font-family: var(--cond); font-size: 15px; font-weight: 700; color: var(--white); }
-.dc-sub { font-family: var(--mono); font-size: 8px; color: var(--muted); }
-.dc-val.r { color: var(--rb); } .dc-val.a { color: var(--amber-l); } .dc-val.g { color: var(--gb); } .dc-val.c { color: var(--cyan); }
-
-/* ═══════════════════════════════════════════════════
-   RIGHT PANEL
-═══════════════════════════════════════════════════ */
-#right-panel {
-  background: var(--bg2);
-  border-left: 1px solid var(--bdr);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.rp-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--bdr);
-  flex-shrink: 0;
-  background: var(--panel);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.rp-tabs::-webkit-scrollbar { display: none; }
-.rp-tab {
-  flex-shrink: 0;
-  font-family: var(--cond);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  padding: 10px 11px;
-  color: var(--dim);
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: color .14s, border-color .14s;
-}
-.rp-tab.on { color: var(--rb); border-bottom-color: var(--red); }
-.rp-panel { flex: 1; overflow-y: auto; display: none; }
-.rp-panel.on { display: block; }
-
-/* RP LINK */
-.rp-link {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-bottom: 1px solid var(--bdr);
-  transition: background .12s;
-}
-.rp-link:hover { background: rgba(204,0,0,.05); }
-.rp-link-icon { font-size: 18px; flex-shrink: 0; }
-.rp-link-label { font-family: var(--mono); font-size: 8px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
-.rp-link-title { font-family: var(--cond); font-size: 14px; font-weight: 700; color: var(--white); line-height: 1.2; }
-
-/* AI PANEL */
-.ai-card {
-  margin: 10px;
-  background: var(--card);
-  border: 1px solid var(--bdr2);
-  border-radius: var(--radius);
-  padding: 12px;
-  animation: fadeUp .3s ease both;
-}
-.ai-card-hdr {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-.ai-badge {
-  background: linear-gradient(135deg, var(--purple), var(--bb));
-  color: #fff;
-  padding: 2px 8px;
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: .1em;
-  border-radius: 2px;
-}
-.ai-content { font-size: 12px; color: var(--text); line-height: 1.6; }
-.ai-content strong { color: var(--white); }
-.ai-refresh {
-  margin-top: 8px;
-  font-family: var(--mono);
-  font-size: 8px;
-  color: var(--bb);
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: color .14s;
-}
-.ai-refresh:hover { color: var(--white); }
-.ai-spinner { width: 10px; height: 10px; border: 1px solid var(--bdr2); border-top-color: var(--bb); border-radius: 50%; animation: spin .8s linear infinite; display: none; }
-.ai-spinner.on { display: block; }
-
-/* RISK METER */
-.risk-meter { margin: 10px; }
-.risk-country {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--bdr);
-  font-family: var(--cond);
-  font-size: 13px;
-}
-.risk-name { flex: 1; color: var(--white); font-weight: 600; }
-.risk-flag { font-size: 15px; }
-.risk-bar-wrap { width: 80px; height: 5px; background: var(--bdr); border-radius: 3px; overflow: hidden; }
-.risk-bar { height: 100%; border-radius: 3px; transition: width .6s ease; }
-.risk-score { font-family: var(--mono); font-size: 9px; width: 28px; text-align: right; }
-
-/* SOURCE LINKS */
-.src-block { padding: 10px 12px; border-bottom: 1px solid var(--bdr); }
-.src-block-title { font-family: var(--mono); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 7px; }
-.src-link {
-  display: block;
-  font-family: var(--cond);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--dim);
-  padding: 3px 8px;
-  border-left: 2px solid transparent;
-  transition: all .12s;
-  border-radius: 0 var(--radius) var(--radius) 0;
-}
-.src-link:hover { color: var(--white); background: rgba(255,255,255,.03); border-left-color: var(--red); }
-
-/* RP Stream grid */
-.rp-stream-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 2px; background: var(--bdr); }
-.rp-stream-cell { background: var(--bg); position: relative; aspect-ratio: 16/9; overflow: hidden; cursor: pointer; }
-.rp-stream-cell iframe { width: 100%; height: 100%; border: none; pointer-events: none; }
-.rp-stream-cell:hover iframe { pointer-events: auto; }
-.stream-label {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  background: linear-gradient(to top, rgba(6,8,15,.95) 60%, transparent);
-  color: var(--dim);
-  padding: 18px 6px 4px;
-  pointer-events: none;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.stream-live-dot { width: 5px; height: 5px; background: var(--rb); border-radius: 50%; display: inline-block; margin-right: 3px; animation: blink .9s step-end infinite; vertical-align: middle; }
-
-/* ═══════════════════════════════════════════════════
-   FULL PAGE SECTIONS — DRAGGABLE
-═══════════════════════════════════════════════════ */
-#fullpage-sections { background: var(--bg); }
-
-/* CUSTOMIZE BAR */
-#customize-bar {
-  display: none;
-  position: sticky;
-  top: calc(26px + 58px);
-  z-index: 1050;
-  background: rgba(100,0,0,.15);
-  border-top: 1px solid var(--red);
-  border-bottom: 1px solid var(--red);
-  padding: 10px 18px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: .1em;
-  color: var(--rb);
-  text-transform: uppercase;
-  align-items: center;
-  gap: 16px;
-  backdrop-filter: blur(4px);
-}
-#customize-bar.on { display: flex; }
-.cb-hint { flex: 1; }
-.cb-done-btn { background: var(--red); color: #fff; padding: 5px 18px; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; border-radius: var(--radius); transition: background .14s; }
-.cb-done-btn:hover { background: var(--rb); }
-.cb-reset-btn { border: 1px solid var(--bdr2); color: var(--dim); padding: 5px 14px; font-family: var(--mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; border-radius: var(--radius); transition: all .14s; }
-.cb-reset-btn:hover { color: var(--white); border-color: var(--white); }
-
-/* DRAGGABLE SECTION */
-.drag-section { position: relative; border-top: 1px solid var(--bdr); }
-.drag-section.dragging { opacity: .35; }
-.drag-section.drag-over { border-top: 3px solid var(--red); }
-.drag-section.minimized .section-body { display: none; }
-
-/* SECTION HEADER */
-.section-header {
-  display: flex;
-  align-items: center;
-  background: var(--panel);
-  border-bottom: 1px solid var(--bdr);
-  padding: 0 18px;
-  height: 48px;
-  gap: 12px;
-}
-.section-header.draggable { cursor: grab; }
-.section-header.draggable:active { cursor: grabbing; }
-.drag-handle { font-size: 16px; color: var(--muted); display: none; cursor: grab; }
-.customize-mode .drag-handle { display: flex; align-items: center; }
-.sec-eyebrow { font-family: var(--mono); font-size: 9px; letter-spacing: .18em; color: var(--red); text-transform: uppercase; flex-shrink: 0; }
-.sec-title { font-family: var(--disp); font-size: 24px; letter-spacing: .04em; color: var(--white); line-height: 1; }
-.sec-sub { font-family: var(--mono); font-size: 9px; color: var(--muted); }
-.sec-controls { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-.sec-ctrl {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--bdr2);
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: var(--dim);
-  cursor: pointer;
-  transition: all .14s;
-}
-.sec-ctrl:hover { color: var(--white); border-color: var(--white); }
-
-/* SECTION BODY */
-.section-body { }
-
-/* ═══════════════════════════════════════════════════
-   STREAM / CAM GRIDS (FULL PAGE)
-═══════════════════════════════════════════════════ */
-.stream-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 3px;
-  background: var(--bdr);
-  padding: 3px;
-}
-.stream-cell {
-  background: var(--bg);
-  position: relative;
-  aspect-ratio: 16/9;
-  overflow: hidden;
-  cursor: pointer;
-  border-radius: var(--radius);
-}
-.stream-cell iframe { width: 100%; height: 100%; border: none; pointer-events: none; transition: filter .2s; }
-.stream-cell:hover iframe { pointer-events: auto; filter: brightness(1.05); }
-.stream-cell-label {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  font-family: var(--cond);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  background: linear-gradient(to top, rgba(6,8,15,.98) 50%, transparent);
-  color: var(--white);
-  padding: 24px 10px 7px;
-  pointer-events: none;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.scl-flag { font-size: 14px; }
-.live-indicator { display: flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 8px; color: var(--rb); letter-spacing: .1em; }
-.live-indicator::before { content: ''; width: 5px; height: 5px; background: var(--rb); border-radius: 50%; animation: blink .9s step-end infinite; }
-
-/* CAM CATEGORY TABS */
-.cam-cat-tabs { display: flex; background: var(--bg3); border-bottom: 1px solid var(--bdr); overflow-x: auto; scrollbar-width: none; gap: 2px; padding: 0 6px; }
-.cam-cat-tabs::-webkit-scrollbar { display: none; }
-.cam-cat-tab { font-family: var(--cond); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 9px 14px; color: var(--dim); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: color .13s, border-color .13s; }
-.cam-cat-tab.on { color: var(--rb); border-bottom-color: var(--red); }
-.cam-cat-tab:hover { color: var(--white); }
-.cam-cat-panel { display: none; }
-.cam-cat-panel.on { display: block; }
-.cam-subsection-hdr { font-family: var(--mono); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); padding: 8px 12px 5px; background: var(--panel); border-bottom: 1px solid var(--bdr); display: flex; align-items: center; gap: 8px; }
-.cam-subsection-hdr .flag-row { display: flex; gap: 4px; }
-
-/* ═══════════════════════════════════════════════════
-   WHITE HOUSE / WH GRID
-═══════════════════════════════════════════════════ */
-.wh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2px; background: var(--bdr); padding: 3px; }
-.wh-card { background: var(--card); padding: 18px; display: flex; align-items: flex-start; gap: 13px; transition: background .14s; border-radius: var(--radius); }
-.wh-card:hover { background: rgba(204,0,0,.06); }
-.wh-card-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
-.wh-card-label { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 3px; }
-.wh-card-title { font-family: var(--cond); font-size: 15px; font-weight: 700; color: var(--white); line-height: 1.2; }
-.wh-card-desc { font-size: 11.5px; color: var(--dim); margin-top: 3px; line-height: 1.5; }
-
-/* ═══════════════════════════════════════════════════
-   MARKETS
-═══════════════════════════════════════════════════ */
-.market-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px; }
-@media(max-width:700px){.market-charts{grid-template-columns:1fr;}}
-.chart-box { background: var(--card); border: 1px solid var(--bdr); border-radius: var(--radius); overflow: hidden; }
-.chart-box-hdr { padding: 8px 12px; border-bottom: 1px solid var(--bdr); font-family: var(--mono); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
-.chart-frame { height: 280px; }
-.chart-frame iframe { width: 100%; height: 100%; border: none; }
-.heatmap-frame { height: 330px; }
-.heatmap-frame iframe { width: 100%; height: 100%; border: none; }
-.ticker-frame { height: 78px; }
-.ticker-frame iframe { width: 100%; height: 100%; border: none; }
-
-/* ═══════════════════════════════════════════════════
-   MEDIA WATCH
-═══════════════════════════════════════════════════ */
-.media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; padding: 14px; }
-.media-col { background: var(--card); border: 1px solid var(--bdr); border-radius: var(--radius); padding: 14px; }
-.media-col-title { font-family: var(--mono); font-size: 8px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--bdr); }
-.media-link { display: block; font-family: var(--cond); font-size: 13px; font-weight: 600; color: var(--dim); padding: 4px 7px; border-left: 2px solid transparent; border-radius: 0 var(--radius) var(--radius) 0; transition: all .12s; }
-.media-link:hover { color: var(--white); background: rgba(255,255,255,.03); border-left-color: currentColor; }
-
-/* ═══════════════════════════════════════════════════
-   MODAL
-═══════════════════════════════════════════════════ */
-#modal-overlay { display: none; position: fixed; inset: 0; z-index: 3000; background: rgba(0,0,0,.94); align-items: center; justify-content: center; }
-#modal-overlay.on { display: flex; }
-#modal-box { position: relative; width: 94vw; max-width: 1300px; height: 78vh; background: var(--panel); border: 1px solid var(--bdr2); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-#modal-iframe { width: 100%; height: 100%; border: none; }
-#modal-header { position: absolute; top: 0; left: 0; right: 0; background: rgba(6,8,15,.95); border-bottom: 1px solid var(--bdr); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; z-index: 5; }
-#modal-title { font-family: var(--cond); font-size: 14px; font-weight: 700; letter-spacing: .05em; color: var(--white); display: flex; align-items: center; gap: 6px; }
-#modal-title::before { content: ''; width: 6px; height: 6px; background: var(--rb); border-radius: 50%; animation: blink .9s step-end infinite; }
-#modal-close { font-family: var(--mono); font-size: 9px; letter-spacing: .1em; color: var(--dim); cursor: pointer; padding: 4px 10px; border: 1px solid var(--bdr2); border-radius: var(--radius); text-transform: uppercase; transition: all .14s; }
-#modal-close:hover { color: var(--white); border-color: var(--white); }
-#modal-box iframe { margin-top: 37px; height: calc(100% - 37px); }
-
-/* ═══════════════════════════════════════════════════
-   FOOTER
-═══════════════════════════════════════════════════ */
-#site-footer { background: var(--bg2); border-top: 2px solid var(--red); padding: 30px 20px 18px; }
-.footer-inner { max-width: 1600px; margin: 0 auto; }
-.footer-grid { display: grid; grid-template-columns: 220px 1fr 1fr 1fr; gap: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--bdr); margin-bottom: 14px; }
-@media(max-width:800px){.footer-grid{grid-template-columns:1fr 1fr;}}
-.footer-brand-desc { font-size: 12px; color: var(--dim); margin-top: 10px; line-height: 1.65; }
-.footer-col-title { font-family: var(--mono); font-size: 8px; letter-spacing: .18em; text-transform: uppercase; color: var(--red); margin-bottom: 10px; }
-.footer-col a { display: block; font-family: var(--cond); font-size: 13px; color: var(--dim); padding: 2px 0; transition: color .12s; }
-.footer-col a:hover { color: var(--white); }
-.footer-bottom { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
-.footer-copy { font-family: var(--mono); font-size: 9px; color: var(--muted); }
-.footer-disc { font-size: 10px; color: var(--muted); max-width: 600px; text-align: right; line-height: 1.5; }
-
-/* ═══════════════════════════════════════════════════
-   RESPONSIVE
-═══════════════════════════════════════════════════ */
-@media(max-width:1280px) { #app-layout{grid-template-columns:250px 1fr 290px;} }
-@media(max-width:1024px) { #app-layout{grid-template-columns:0px 1fr 260px;}#left-sidebar{display:none;} }
-@media(max-width:720px) { #app-layout{grid-template-columns:1fr;grid-template-rows:380px 320px;height:auto;}#right-panel{height:320px;} }
+.rp-link{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--bdr)}.rp-link:hover{background:rgba(204,0,0,.05)}.rp-link-icon{font-size:18px}.rp-link-label{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}.rp-link-title{font-family:var(--cond);font-size:14px;font-weight:800;color:var(--white)}
+.ai-card{margin:10px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--radius);padding:12px}.ai-card-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase}.ai-badge{background:linear-gradient(135deg,var(--purple),var(--bb));color:#fff;padding:2px 8px;border-radius:2px}.ai-content{font-size:12px;line-height:1.6}.ai-content strong{color:var(--white)}.ai-refresh{margin-top:8px;font-family:var(--mono);font-size:8px;color:var(--bb);cursor:pointer;text-transform:uppercase;letter-spacing:.1em;display:inline-flex;gap:5px}.ai-spinner{display:none;width:10px;height:10px;border:1px solid var(--bdr2);border-top-color:var(--bb);border-radius:50%;animation:spin .8s linear infinite}.ai-spinner.on{display:block}
+.risk-meter{margin:10px}.risk-country{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bdr);font-family:var(--cond);font-size:13px}.risk-name{flex:1;color:var(--white);font-weight:700}.risk-flag{font-size:15px}.risk-bar-wrap{width:80px;height:5px;background:var(--bdr);border-radius:3px;overflow:hidden}.risk-bar{height:100%;border-radius:3px}.risk-score{font-family:var(--mono);font-size:9px;width:28px;text-align:right}
+.stream-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:3px;background:var(--bdr);padding:3px}.stream-cell{position:relative;background:var(--bg);aspect-ratio:16/9;overflow:hidden;border-radius:var(--radius);cursor:pointer}.stream-cell iframe{width:100%;height:100%;border:0;pointer-events:none}.stream-cell:hover iframe{pointer-events:auto;filter:brightness(1.05)}.stream-cell-label{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding:24px 10px 7px;background:linear-gradient(to top,rgba(6,8,15,.98) 50%,transparent);color:#fff;font-family:var(--cond);font-size:12px;font-weight:800;pointer-events:none}.live-indicator{font-family:var(--mono);font-size:8px;color:var(--rb);letter-spacing:.1em}
+.section-header{height:48px;display:flex;align-items:center;gap:12px;padding:0 18px;background:var(--panel);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}.sec-eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--red);text-transform:uppercase}.sec-title{font-family:var(--disp);font-size:24px;letter-spacing:.04em;color:var(--white);line-height:1}.sec-sub{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.market-charts{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}.chart-box{background:var(--card);border:1px solid var(--bdr);border-radius:var(--radius);overflow:hidden}.chart-box-hdr{padding:8px 12px;border-bottom:1px solid var(--bdr);font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}.chart-frame{height:280px}.chart-frame iframe,.ticker-frame iframe,.heatmap-frame iframe{width:100%;height:100%;border:0}.ticker-frame{height:78px}.heatmap-frame{height:330px}
+.media-grid,.wh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;padding:14px}.media-col,.wh-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--radius);padding:14px}.media-col-title,.footer-col-title{font-family:var(--mono);font-size:8px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;color:var(--red)}.media-link,.footer-col a{display:block;font-family:var(--cond);font-size:13px;font-weight:700;color:var(--dim);padding:3px 0}.media-link:hover,.footer-col a:hover{color:var(--white)}
+#modal-overlay{display:none;position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.94);align-items:center;justify-content:center}#modal-overlay.on{display:flex}#modal-box{position:relative;width:94vw;max-width:1300px;height:78vh;background:var(--panel);border:1px solid var(--bdr2);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}#modal-header{position:absolute;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;justify-content:space-between;background:rgba(6,8,15,.95);border-bottom:1px solid var(--bdr);padding:8px 14px}#modal-title{font-family:var(--cond);font-size:14px;font-weight:800;color:#fff}#modal-close{font-family:var(--mono);font-size:9px;color:var(--dim);border:1px solid var(--bdr2);padding:4px 10px;border-radius:var(--radius);text-transform:uppercase}#modal-iframe{width:100%;height:calc(100% - 37px);margin-top:37px;border:0}
+#site-footer{background:var(--bg2);border-top:2px solid var(--red);padding:28px 20px}.footer-grid{display:grid;grid-template-columns:220px 1fr 1fr 1fr;gap:28px;max-width:1600px;margin:0 auto 14px;padding-bottom:20px;border-bottom:1px solid var(--bdr)}.footer-brand-desc{font-size:12px;color:var(--dim);margin-top:10px}.footer-bottom{max-width:1600px;margin:0 auto;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.footer-copy,.footer-disc{font-size:10px;color:var(--muted)}
+@media(max-width:1280px){#app-layout{grid-template-columns:250px 1fr 290px}.simple-dashboard{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1024px){#app-layout{grid-template-columns:0 1fr 260px}#left-sidebar{display:none}.footer-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){#app-layout{grid-template-columns:1fr;height:auto}#right-panel{display:none}#center-area{height:440px}.header-right #site-clock,.live-badge{display:none}.simple-dashboard{grid-template-columns:1fr}.market-charts{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr}}
 </style>
 </head>
-<body>
-
-<!-- ═══ MODAL ═══════════════════════════════════════ -->
+<body class="advanced-mode">
 <div id="modal-overlay" onclick="if(event.target===this)closeModal()">
   <div id="modal-box">
-    <div id="modal-header">
-      <div id="modal-title">LIVE FEED</div>
-      <div id="modal-close" onclick="closeModal()">✕ Close  [ESC]</div>
-    </div>
+    <div id="modal-header"><div id="modal-title">LIVE FEED</div><button id="modal-close" onclick="closeModal()">Close [ESC]</button></div>
     <iframe id="modal-iframe" src="" allowfullscreen allow="autoplay;encrypted-media"></iframe>
   </div>
 </div>
 
-<!-- ═══ ALERT TICKER ════════════════════════════════ -->
 <div id="ticker-bar">
   <div class="ticker-pfx"><span class="ticker-dot"></span>LIVE</div>
-  <div class="ticker-scroll" id="ticker-content">
-    <span>327 MEDIA SITUATION ROOM — ALL SYSTEMS ACTIVE</span>
-    <span>NATIONAL THREAT LEVEL: ELEVATED — MONITOR ALL FEEDS</span>
-    <span>U.S. MARKETS LIVE — DOW · S&P · NASDAQ · BTC · GOLD · OIL</span>
-    <span>WHITE HOUSE: EXECUTIVE ORDERS ACTIVE — TRACKING LIVE</span>
-    <span>SOUTHERN BORDER — CBP OPERATIONS: ACTIVE · SOUTHWEST SECTOR</span>
-    <span>CONGRESS: BOTH CHAMBERS IN SESSION — DEFENSE APPROPRIATIONS</span>
-    <span>TAIWAN STRAIT: PLA NAVAL EXERCISES — INDOPACOM ON WATCH</span>
-    <span>UKRAINE WAR: ACTIVE CONFLICT — DAY 1180+ OF RUSSIAN INVASION</span>
-    <span>MIDDLE EAST: ISRAEL-HAMAS CEASEFIRE NEGOTIATIONS — U.S. BROKERING</span>
-    <span>USGS EARTHQUAKE MONITOR: LIVE SEISMIC DATA LOADING</span>
-    <span>40+ LIVE GLOBAL WEBCAMS ACTIVE — U.S. · ALLIES · WATCH ZONES</span>
-    <span>NATIONAL DEBT CLOCK: $36.2 TRILLION AND CLIMBING</span>
-    <span>327 MEDIA SITUATION ROOM — ALL SYSTEMS ACTIVE</span>
-    <span>NATIONAL THREAT LEVEL: ELEVATED — MONITOR ALL FEEDS</span>
-    <span>U.S. MARKETS LIVE — DOW · S&P · NASDAQ · BTC · GOLD · OIL</span>
-    <span>WHITE HOUSE: EXECUTIVE ORDERS ACTIVE — TRACKING LIVE</span>
-    <span>SOUTHERN BORDER — CBP OPERATIONS: ACTIVE · SOUTHWEST SECTOR</span>
-    <span>CONGRESS: BOTH CHAMBERS IN SESSION — DEFENSE APPROPRIATIONS</span>
-    <span>TAIWAN STRAIT: PLA NAVAL EXERCISES — INDOPACOM ON WATCH</span>
-    <span>UKRAINE WAR: ACTIVE CONFLICT — DAY 1180+ OF RUSSIAN INVASION</span>
-    <span>MIDDLE EAST: ISRAEL-HAMAS CEASEFIRE NEGOTIATIONS — U.S. BROKERING</span>
-    <span>USGS EARTHQUAKE MONITOR: LIVE SEISMIC DATA LOADING</span>
-    <span>40+ LIVE GLOBAL WEBCAMS ACTIVE — U.S. · ALLIES · WATCH ZONES</span>
-    <span>NATIONAL DEBT CLOCK: $36.2 TRILLION AND CLIMBING</span>
+  <div class="ticker-scroll">
+    <span>327 MEDIA SITUATION ROOM - WORLD MAP ACTIVE</span><span>WAR ZONES: UKRAINE - GAZA/ISRAEL - SUDAN - YEMEN</span><span>MARKETS: DOW - S&P - NASDAQ - BTC - ETH - OIL - GOLD</span><span>TRACKING FLIGHTS - SHIPS - WEATHER - SEISMIC - WILDFIRES</span>
+    <span>327 MEDIA SITUATION ROOM - WORLD MAP ACTIVE</span><span>WAR ZONES: UKRAINE - GAZA/ISRAEL - SUDAN - YEMEN</span><span>MARKETS: DOW - S&P - NASDAQ - BTC - ETH - OIL - GOLD</span><span>TRACKING FLIGHTS - SHIPS - WEATHER - SEISMIC - WILDFIRES</span>
   </div>
 </div>
 
-<!-- ═══ HEADER ══════════════════════════════════════ -->
 <header id="site-header">
   <div class="header-inner">
-    <a href="#" class="logo">
-      <div class="logo-badge">327</div>
-      <div class="logo-text">
-        <div class="logo-name">SITUATION ROOM</div>
-        <div class="logo-sub">Powered by 327 Media</div>
-      </div>
+    <a href="#" class="logo" onclick="scrollTo(0,0)">
+      <div class="logo-badge">327</div><div><div class="logo-name">SITUATION ROOM</div><div class="logo-sub">Powered by 327 Media</div></div>
     </a>
-
     <nav id="main-nav">
-      <span class="nav-btn on" onclick="scrollTo(0,0)">Overview</span>
-      <div class="nav-sep"></div>
-      <span class="nav-btn" onclick="setMap('usmap')">🗺 U.S. Map</span>
-      <span class="nav-btn" onclick="setMap('flights')">✈ Flights</span>
-      <span class="nav-btn" onclick="setMap('ships')">🚢 Ships</span>
-      <span class="nav-btn" onclick="setMap('weather')">🌩 Radar</span>
-      <span class="nav-btn" onclick="setMap('fires')">🔥 Fires</span>
-      <span class="nav-btn" onclick="setMap('quakes')">📡 Seismic</span>
-      <span class="nav-btn" onclick="setMap('wind')">💨 Wind</span>
-      <span class="nav-btn" onclick="setMap('hurricanes')">🌀 Hurr.</span>
-      <div class="nav-sep"></div>
-      <a class="nav-btn" href="#sec-tv">Live TV</a>
-      <a class="nav-btn" href="#sec-cams">Webcams</a>
-      <a class="nav-btn" href="#sec-wh">White House</a>
-      <a class="nav-btn" href="#sec-markets">Markets</a>
-      <a class="nav-btn" href="#sec-media">Media</a>
+      <span class="nav-btn on" onclick="scrollTo(0,0)">Overview</span><div class="nav-sep"></div>
+      <a class="nav-btn" href="#sec-tv">Live TV</a><a class="nav-btn" href="#sec-cams">Webcams</a><a class="nav-btn" href="#sec-wh">White House</a><a class="nav-btn" href="#sec-markets">Markets</a><a class="nav-btn" href="#sec-media">Media</a>
     </nav>
-
     <div class="header-right">
-      <div class="mode-toggle">
-        <div class="mode-btn on" id="mode-simple" onclick="setMode('simple')" title="Simple Mode">Simple</div>
-        <div class="mode-btn" id="mode-adv" onclick="setMode('advanced')" title="Advanced Mode">Advanced</div>
-      </div>
-      <button class="customize-btn" id="cust-btn" onclick="toggleCustomize()">⠿ Layout</button>
-      <div class="live-badge"><span class="live-dot"></span><span>LIVE</span></div>
-      <div id="site-clock">--:--:-- ET</div>
+      <div class="mode-toggle"><button class="mode-btn" id="mode-simple" onclick="setMode('simple')">Simple</button><button class="mode-btn on" id="mode-adv" onclick="setMode('advanced')">Advanced</button></div>
+      <div class="live-badge"><span class="live-dot"></span><span>LIVE</span></div><div id="site-clock">--:--:-- ET</div>
     </div>
   </div>
 </header>
 
-<!-- ═══ THREAT BAR ══════════════════════════════════ -->
 <div id="threat-bar">
-  <span class="threat-label">🇺🇸 Threat</span>
-  <div class="threat-levels">
-    <div class="tl tl-lo">Low</div>
-    <div class="tl tl-gu">Guarded</div>
-    <div class="tl tl-el on">Elevated</div>
-    <div class="tl tl-hi">High</div>
-    <div class="tl tl-sv">Severe</div>
-  </div>
-  <span class="threat-msg">⚠ ELEVATED — CBP Active · Congressional Session · Taiwan Strait Watch</span>
+  <span class="threat-label advanced-only">GLOBAL POSTURE</span>
+  <div class="threat-levels advanced-only"><div class="tl tl-lo">Low</div><div class="tl tl-gu">Guarded</div><div class="tl tl-el on">Elevated</div><div class="tl tl-hi">High</div><div class="tl tl-sv">Severe</div></div>
+  <span class="threat-msg advanced-only">ELEVATED - Taiwan Strait Watch - Ukraine War - Middle East Flashpoint</span>
+  <div class="simple-only simple-status"><span class="live-dot"></span> Friendly Mode: big buttons, calmer alerts, easier words.</div>
 </div>
 
-<!-- ═══ MARKET STRIP ════════════════════════════════ -->
 <div id="market-strip">
-  <div class="mchip"><span class="mchip-name">DOW</span><span class="mchip-val" id="m-dow">—</span><span class="mchip-chg fl" id="m-dow-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">S&P 500</span><span class="mchip-val" id="m-sp">—</span><span class="mchip-chg fl" id="m-sp-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">NASDAQ</span><span class="mchip-val" id="m-nq">—</span><span class="mchip-chg fl" id="m-nq-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">BTC</span><span class="mchip-val" id="m-btc">—</span><span class="mchip-chg fl" id="m-btc-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">ETH</span><span class="mchip-val" id="m-eth">—</span><span class="mchip-chg fl" id="m-eth-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">OIL</span><span class="mchip-val" id="m-oil">—</span><span class="mchip-chg fl" id="m-oil-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">GOLD</span><span class="mchip-val" id="m-gold">—</span><span class="mchip-chg fl" id="m-gold-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">10Y YLD</span><span class="mchip-val" id="m-10y">—</span><span class="mchip-chg fl" id="m-10y-c">—</span></div>
-  <div class="mchip"><span class="mchip-name">EUR/USD</span><span class="mchip-val" id="m-fx">—</span><span class="mchip-chg fl" id="m-fx-c">—</span></div>
-  <div class="mchip" style="border-right:none"><span class="mchip-name">NAT GAS</span><span class="mchip-val" id="m-gas">—</span><span class="mchip-chg fl" id="m-gas-c">—</span></div>
+  <div class="simple-market-note simple-only">Markets snapshot:</div>
+  <div class="mchip"><span class="mchip-name">DOW</span><span class="mchip-val" id="m-dow">Loading</span><span class="mchip-chg fl" id="m-dow-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">S&P 500</span><span class="mchip-val" id="m-sp">Loading</span><span class="mchip-chg fl" id="m-sp-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">NASDAQ</span><span class="mchip-val" id="m-nq">Loading</span><span class="mchip-chg fl" id="m-nq-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">BTC</span><span class="mchip-val" id="m-btc">Loading</span><span class="mchip-chg fl" id="m-btc-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">ETH</span><span class="mchip-val" id="m-eth">Loading</span><span class="mchip-chg fl" id="m-eth-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">OIL</span><span class="mchip-val" id="m-oil">Loading</span><span class="mchip-chg fl" id="m-oil-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">GOLD</span><span class="mchip-val" id="m-gold">Loading</span><span class="mchip-chg fl" id="m-gold-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">10Y YLD</span><span class="mchip-val" id="m-10y">Loading</span><span class="mchip-chg fl" id="m-10y-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">EUR/USD</span><span class="mchip-val" id="m-fx">Loading</span><span class="mchip-chg fl" id="m-fx-c">--</span></div>
+  <div class="mchip"><span class="mchip-name">NAT GAS</span><span class="mchip-val" id="m-gas">Loading</span><span class="mchip-chg fl" id="m-gas-c">--</span></div>
 </div>
 
-<!-- ═══ MAIN APP ═════════════════════════════════════ -->
-<div id="app-layout">
+<div class="simple-dashboard simple-only">
+  <div class="simple-card"><h3>What am I looking at?</h3><p>A friendly world map. Red areas mean countries facing war or serious danger.</p></div>
+  <div class="simple-card"><h3>Big alerts</h3><p><strong>Red</strong> means active conflict. Orange means watch closely. Blue shows U.S. military locations.</p></div>
+  <div class="simple-card"><h3>Explore</h3><p>Drag the map, zoom in, and tap a dot to learn what is happening there.</p></div>
+  <div class="simple-card"><h3>Switch back</h3><p>Use Advanced when you want the full dashboard with feeds, panels, and live tools.</p></div>
+</div>
 
-  <!-- LEFT SIDEBAR -->
-  <div id="left-sidebar">
-    <div class="sidebar-tabs">
-      <div class="sidebar-tab on" onclick="setSideTab('news')">News</div>
-      <div class="sidebar-tab" onclick="setSideTab('alerts')">Alerts</div>
-      <div class="sidebar-tab" onclick="setSideTab('quakes')">Seismic</div>
-      <div class="sidebar-tab" onclick="setSideTab('intel')">Intel</div>
-    </div>
+<main id="app-layout">
+  <aside id="left-sidebar" class="advanced-only">
+    <div class="sidebar-tabs"><button class="sidebar-tab on" onclick="setSideTab('news')">News</button><button class="sidebar-tab" onclick="setSideTab('alerts')">Alerts</button><button class="sidebar-tab" onclick="setSideTab('quakes')">Seismic</button><button class="sidebar-tab" onclick="setSideTab('intel')">Intel</button></div>
+    <div class="sidebar-panel on" id="sp-news"><div class="panel-section-hdr">U.S. & Political</div><div id="news-main-feed"><div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted)">Loading feeds...</div></div><div class="panel-section-hdr">Breaking & Security</div><div id="news-sec-feed"><div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted)">Loading feeds...</div></div></div>
+    <div class="sidebar-panel" id="sp-alerts"><div class="panel-section-hdr">Critical - Active Now</div><div class="alert-item"><div class="alert-dot ad-red"></div><div><div class="alert-title">Ukraine - Active war zone</div><div class="alert-meta">Eastern Europe - ongoing</div></div></div><div class="alert-item"><div class="alert-dot ad-red"></div><div><div class="alert-title">Gaza / Israel - active conflict</div><div class="alert-meta">Middle East - high civilian risk</div></div></div><div class="alert-item"><div class="alert-dot ad-amber"></div><div><div class="alert-title">Taiwan Strait - flashpoint watch</div><div class="alert-meta">INDOPACOM - military activity</div></div></div><div class="alert-item"><div class="alert-dot ad-amber"></div><div><div class="alert-title">Iran - nuclear and regional watch</div><div class="alert-meta">CENTCOM - proxy activity</div></div></div></div>
+    <div class="sidebar-panel" id="sp-quakes"><div class="panel-section-hdr">USGS - Recent Earthquakes</div><div id="quake-list"><div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted)">Loading USGS...</div></div></div>
+    <div class="sidebar-panel" id="sp-intel"><div class="panel-section-hdr">Geopolitical Status</div><div class="alert-item"><div class="alert-dot ad-red"></div><div><div class="alert-title">Active war zones: 6</div><div class="alert-meta">Ukraine, Gaza/Israel, Sudan, Yemen, Mali, Myanmar</div></div></div><div class="alert-item"><div class="alert-dot ad-amber"></div><div><div class="alert-title">Flashpoints: 5</div><div class="alert-meta">Taiwan, Iran, North Korea, South China Sea, Venezuela</div></div></div></div>
+  </aside>
 
-    <!-- NEWS -->
-    <div class="sidebar-panel on" id="sp-news">
-      <div class="panel-section-hdr">🇺🇸 U.S. &amp; Political</div>
-      <div id="news-main-feed"><div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted);">Loading feeds…</div></div>
-      <div class="panel-section-hdr">⚡ Breaking &amp; Security</div>
-      <div id="news-sec-feed"><div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted);">Loading feeds…</div></div>
-    </div>
-
-    <!-- ALERTS -->
-    <div class="sidebar-panel" id="sp-alerts">
-      <div class="panel-section-hdr">🔴 Critical — Active Now</div>
-      <div class="alert-item"><div class="alert-dot ad-red"></div><div><div class="alert-title">Southern Border — CBP Operations Active</div><div class="alert-meta">DHS · Southwest Sector · Ongoing</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-red"></div><div><div class="alert-title">China Espionage — Federal Indictments Filed</div><div class="alert-meta">DOJ · Technology Theft · 3 Nationals Charged</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-red"></div><div><div class="alert-title">Fentanyl — Multi-State DEA Operation</div><div class="alert-meta">DEA · Southwest Border · Active Interdiction</div></div></div>
-      <div class="panel-section-hdr">⚠ Watch &amp; Monitor</div>
-      <div class="alert-item"><div class="alert-dot ad-amber"></div><div><div class="alert-title">Taiwan Strait — PLA Naval Exercises</div><div class="alert-meta">INDOPACOM · USS Carrier Group In Region</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-amber"></div><div><div class="alert-title">Ukraine War — Active Conflict Day 1180+</div><div class="alert-meta">DoD · U.S. Aid Package Under Review</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-amber"></div><div><div class="alert-title">FOMC Rate Decision — Approaching</div><div class="alert-meta">Federal Reserve · Markets Watching</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-amber"></div><div><div class="alert-title">CISA — Critical Infrastructure Advisory</div><div class="alert-meta">Cybersecurity · Patch Now · All Agencies</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-blue"></div><div><div class="alert-title">Congress — Defense Appropriations Vote</div><div class="alert-meta">Senate · FY2027 Budget Markup Ongoing</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-blue"></div><div><div class="alert-title">NATO Article 4 — Baltic States</div><div class="alert-meta">Brussels · U.S. Response Under Review</div></div></div>
-      <div class="panel-section-hdr">🌐 Environmental Watch</div>
-      <div class="alert-item"><div class="alert-dot ad-cyan"></div><div><div class="alert-title">Hurricane Season — NOAA: Above Normal</div><div class="alert-meta">NOAA NHC · Gulf Coast · June–November</div></div></div>
-      <div class="alert-item"><div class="alert-dot ad-cyan"></div><div><div class="alert-title">Wildfire Risk — CA, TX, CO: Extreme</div><div class="alert-meta">NIFC · Red Flag Warnings Active</div></div></div>
-    </div>
-
-    <!-- SEISMIC -->
-    <div class="sidebar-panel" id="sp-quakes">
-      <div class="panel-section-hdr">📡 USGS — Recent Earthquakes</div>
-      <div id="quake-list"><div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted);">Loading USGS…</div></div>
-    </div>
-
-    <!-- INTEL -->
-    <div class="sidebar-panel" id="sp-intel">
-      <div class="intel-grid">
-        <div class="intel-stat"><div class="intel-val r">ELEVATED</div><div class="intel-lbl">Threat</div></div>
-        <div class="intel-stat"><div class="intel-val a">$36.2T</div><div class="intel-lbl">Nat. Debt</div></div>
-        <div class="intel-stat"><div class="intel-val g">STABLE</div><div class="intel-lbl">Power Grid</div></div>
-        <div class="intel-stat"><div class="intel-val c">12</div><div class="intel-lbl">Watch Zones</div></div>
-      </div>
-      <div class="panel-section-hdr">🌍 Geopolitical Status</div>
-      <div class="intel-row"><span class="intel-key">Taiwan Strait</span><span class="intel-v iv-a">WATCH</span></div>
-      <div class="intel-row"><span class="intel-key">Ukraine War</span><span class="intel-v iv-a">ACTIVE</span></div>
-      <div class="intel-row"><span class="intel-key">Middle East</span><span class="intel-v iv-a">WATCH</span></div>
-      <div class="intel-row"><span class="intel-key">North Korea</span><span class="intel-v iv-g">MONITOR</span></div>
-      <div class="intel-row"><span class="intel-key">Iran Nuclear</span><span class="intel-v iv-a">WATCH</span></div>
-      <div class="panel-section-hdr">🇺🇸 Domestic Status</div>
-      <div class="intel-row"><span class="intel-key">Congress</span><span class="intel-v">IN SESSION</span></div>
-      <div class="intel-row"><span class="intel-key">SCOTUS</span><span class="intel-v">TERM ACTIVE</span></div>
-      <div class="intel-row"><span class="intel-key">CBP Border</span><span class="intel-v iv-r">ACTIVE OPS</span></div>
-      <div class="intel-row"><span class="intel-key">Energy Grid</span><span class="intel-v iv-g">STABLE</span></div>
-      <div class="panel-section-hdr">📊 Economic Indicators</div>
-      <div class="intel-row"><span class="intel-key">CPI Inflation</span><span class="intel-v iv-a">3.4%</span></div>
-      <div class="intel-row"><span class="intel-key">Unemployment</span><span class="intel-v iv-g">3.9%</span></div>
-      <div class="intel-row"><span class="intel-key">Fed Rate</span><span class="intel-v">4.25–4.50%</span></div>
-      <div class="intel-row"><span class="intel-key">GDP Growth</span><span class="intel-v iv-g">2.1%</span></div>
-    </div>
-  </div>
-
-  <!-- CENTER MAP AREA -->
-  <div id="center-area">
-    <!-- MAP TABS -->
+  <section id="center-area">
     <div id="map-tabs-bar">
-      <div class="map-tab-btn on" onclick="setMap('usmap')"><span class="tab-icon">🗺</span>U.S. Map</div>
-      <div class="map-tab-btn" onclick="setMap('flights')"><span class="tab-icon">✈</span>Flights</div>
-      <div class="map-tab-btn" onclick="setMap('ships')"><span class="tab-icon">🚢</span>Ships</div>
-      <div class="map-tab-btn" onclick="setMap('weather')"><span class="tab-icon">🌩</span>Weather</div>
-      <div class="map-tab-btn" onclick="setMap('fires')"><span class="tab-icon">🔥</span>Wildfires</div>
-      <div class="map-tab-btn" onclick="setMap('quakes')"><span class="tab-icon">📡</span>Seismic</div>
-      <div class="map-tab-btn" onclick="setMap('wind')"><span class="tab-icon">💨</span>Wind</div>
-      <div class="map-tab-btn" onclick="setMap('hurricanes')"><span class="tab-icon">🌀</span>Hurricanes</div>
-      <div class="map-tab-btn" onclick="setMap('satellite')"><span class="tab-icon">🛰</span>Satellite</div>
-      <div class="map-view-toggle">
-        <div class="mvt-btn on" id="view-2d" onclick="setView('2d')">2D</div>
-        <div class="mvt-btn" id="view-3d" onclick="setView('3d')">3D</div>
-      </div>
+      <button class="map-tab-btn on" onclick="setMap('usmap')"><span class="tab-icon">WORLD</span>Map</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('flights')"><span class="tab-icon">AIR</span>Flights</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('ships')"><span class="tab-icon">SEA</span>Ships</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('weather')"><span class="tab-icon">WX</span>Weather</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('fires')"><span class="tab-icon">FIRE</span>Wildfires</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('quakes')"><span class="tab-icon">EQ</span>Seismic</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('wind')"><span class="tab-icon">WIND</span>Wind</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('hurricanes')"><span class="tab-icon">STORM</span>Hurricanes</button>
+      <button class="map-tab-btn advanced-only" onclick="setMap('satellite')"><span class="tab-icon">SAT</span>Satellite</button>
+      <div class="map-view-toggle"><button class="mvt-btn on" id="view-2d" onclick="setView('2d')">2D</button><button class="mvt-btn" id="view-3d" onclick="setView('3d')">3D</button></div>
     </div>
-
-    <!-- MAP VIEWPORT -->
     <div id="map-viewport">
-      <!-- 2D LAYERS -->
-      <iframe id="map-usmap" class="map-layer on" style="filter:saturate(.18) brightness(.48) hue-rotate(195deg);"
-        src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d15000000!2d-96!3d38!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1sen!2sus!4v1700000000!5m2!1sen!2sus"
-        allowfullscreen loading="lazy" title="U.S. Map"></iframe>
-
-      <iframe id="map-flights" class="map-layer"
-        src="https://globe.adsbexchange.com/?lat=38&lon=-96&zoom=5&mil=true"
-        allowfullscreen title="Live Flights ADS-B"></iframe>
-
-      <iframe id="map-ships" class="map-layer"
-        src="https://www.vessel-finder.com/vessels/map?lat=35&lon=-80&z=5"
-        allowfullscreen title="AIS Ship Traffic"></iframe>
-
-      <iframe id="map-weather" class="map-layer"
-        src="https://embed.windy.com/embed2.html?lat=38&lon=-96&detailLat=38&detailLon=-96&width=990&height=600&pane=rain&overlay=rain&product=ecmwf&level=surface&pressure=true&message=true"
-        allowfullscreen title="Weather Radar"></iframe>
-
-      <iframe id="map-fires" class="map-layer"
-        src="https://www.arcgis.com/apps/instant/sidebar/index.html?appid=8fae74b2e0534e86abd47cdec84046d6"
-        allowfullscreen title="Wildfire Map ESRI"></iframe>
-
-      <iframe id="map-quakes" class="map-layer"
-        src="https://earthquake.usgs.gov/earthquakes/map/#%7B%22autoUpdate%22%3A%5B%22autoUpdate%22%5D%2C%22basemap%22%3A%22grayscale%22%2C%22feed%22%3A%221day_m25%22%2C%22listFormat%22%3A%22default%22%2C%22mapposition%22%3A%5B%5B24.5%2C-125%5D%2C%5B50%2C-65%5D%5D%2C%22overlays%22%3A%5B%22plates%22%5D%2C%22restrictListToMap%22%3A%5B%22restrictListToMap%22%5D%2C%22search%22%3Anull%2C%22sort%22%3A%22newest%22%2C%22timezone%22%3A%22utc%22%2C%22viewModes%22%3A%5B%22map%22%5D%2C%22event%22%3Anull%7D"
-        allowfullscreen title="USGS Seismic Map"></iframe>
-
-      <iframe id="map-wind" class="map-layer"
-        src="https://embed.windy.com/embed2.html?lat=38&lon=-96&detailLat=38&detailLon=-96&width=990&height=600&pane=wind&overlay=wind&product=ecmwf&level=surface&pressure=true&message=true"
-        allowfullscreen title="Wind Map"></iframe>
-
-      <iframe id="map-hurricanes" class="map-layer"
-        src="https://digitalcyclone.com/nhc/nhcWidget.aspx?id=NHC_WIDGET"
-        allowfullscreen title="Hurricane Track"></iframe>
-
-      <iframe id="map-satellite" class="map-layer"
-        src="https://embed.windy.com/embed2.html?lat=38&lon=-96&detailLat=38&detailLon=-96&width=990&height=600&pane=satellite&overlay=satellite&product=ecmwf&level=surface&pressure=true&message=true"
-        allowfullscreen title="Satellite Imagery"></iframe>
-
-      <!-- 3D GLOBE -->
-      <iframe id="map-3d-globe" class="map-layer"
-        src="https://globe.adsbexchange.com/?lat=30&lon=-20&zoom=2"
-        style="display:none;width:100%;height:100%;border:none;"
-        allowfullscreen title="3D Globe"></iframe>
-
-      <!-- INTEL DOT OVERLAY (2D Mode) -->
-      <div id="map-overlay" id="intel-overlay">
-        <!-- WAR ZONES - RED -->
-        <div class="map-dot dot-red" style="left:52.4%;top:28.5%" data-label="Ukraine — Active War Zone"></div>
-        <div class="map-dot dot-red" style="left:56%;top:48%" data-label="Gaza / Israel — Active Conflict"></div>
-        <div class="map-dot dot-red" style="left:57%;top:50%" data-label="West Bank — Elevated Tensions"></div>
-        <div class="map-dot dot-red" style="left:36%;top:57%" data-label="Sudan — Civil War Ongoing"></div>
-        <div class="map-dot dot-red" style="left:35%;top:52%" data-label="Sahel / Mali — Conflict Zone"></div>
-        <div class="map-dot dot-red" style="left:34%;top:56%" data-label="Nigeria — Boko Haram Active"></div>
-        <!-- HIGH ALERT - AMBER -->
-        <div class="map-dot dot-amber" style="left:72%;top:37%" data-label="Taiwan Strait — FLASHPOINT"></div>
-        <div class="map-dot dot-amber" style="left:58%;top:49%" data-label="Lebanon / Hezbollah — Watch"></div>
-        <div class="map-dot dot-amber" style="left:62%;top:46%" data-label="Iran — Nuclear Program Watch"></div>
-        <div class="map-dot dot-amber" style="left:60%;top:45%" data-label="Syria — Fragile Stability"></div>
-        <div class="map-dot dot-amber" style="left:74%;top:33%" data-label="North Korea — ICBM Watch"></div>
-        <div class="map-dot dot-amber" style="left:65%;top:43%" data-label="Yemen — Houthi Attacks"></div>
-        <div class="map-dot dot-amber" style="left:41%;top:51%" data-label="Libya — Instability"></div>
-        <div class="map-dot dot-amber" style="left:24%;top:63%" data-label="Venezuela — Political Crisis"></div>
-        <!-- U.S. MILITARY BASES - BLUE -->
-        <div class="map-dot dot-blue" style="left:18%;top:38%" data-label="🇺🇸 Naval Station Norfolk — HQ"></div>
-        <div class="map-dot dot-blue" style="left:72%;top:36%" data-label="🇺🇸 Kadena AB — Japan (USAF)"></div>
-        <div class="map-dot dot-blue" style="left:60%;top:48%" data-label="🇺🇸 Al Udeid AB — Qatar"></div>
-        <div class="map-dot dot-blue" style="left:56%;top:47%" data-label="🇺🇸 5th Fleet — Bahrain"></div>
-        <div class="map-dot dot-blue" style="left:50%;top:28%" data-label="🇺🇸 Ramstein AB — Germany"></div>
-        <div class="map-dot dot-blue" style="left:14%;top:35%" data-label="🇺🇸 Camp Lejeune — NC"></div>
-        <!-- U.S. ALLIES - GREEN -->
-        <div class="map-dot dot-green" style="left:49%;top:30%" data-label="🇬🇧 UK — NATO Ally"></div>
-        <div class="map-dot dot-green" style="left:56%;top:33%" data-label="🇵🇱 Poland — NATO Eastern Flank"></div>
-        <div class="map-dot dot-green" style="left:55%;top:48%" data-label="🇮🇱 Israel — U.S. Ally"></div>
-        <div class="map-dot dot-green" style="left:73%;top:40%" data-label="🇯🇵 Japan — U.S. Ally"></div>
-        <div class="map-dot dot-green" style="left:72%;top:42%" data-label="🇰🇷 South Korea — U.S. Ally"></div>
-        <div class="map-dot dot-green" style="left:86%;top:72%" data-label="🇦🇺 Australia — U.S. Ally (AUKUS)"></div>
-        <!-- NUCLEAR SITES - PURPLE -->
-        <div class="map-dot dot-purple" style="left:62%;top:42%" data-label="☢ Iran — Natanz Nuclear Facility"></div>
-        <div class="map-dot dot-purple" style="left:74%;top:31%" data-label="☢ N. Korea — Yongbyon Reactor"></div>
-        <div class="map-dot dot-purple" style="left:69%;top:35%" data-label="☢ China — Jiuquan Nuclear Site"></div>
-        <div class="map-dot dot-purple" style="left:58%;top:32%" data-label="☢ Russia — Severodvinsk Nuclear"></div>
-        <!-- MONITORING - CYAN -->
-        <div class="map-dot dot-cyan" style="left:15%;top:40%" data-label="📡 NORAD — Colorado Springs"></div>
-        <div class="map-dot dot-cyan" style="left:64%;top:36%" data-label="📡 Russia — Black Sea Fleet Watch"></div>
-        <div class="map-dot dot-cyan" style="left:71%;top:46%" data-label="📡 South China Sea — U.S. Patrol"></div>
-      </div>
-
-      <!-- MAP LEGEND -->
-      <div id="map-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--rb)"></div>Active Conflict / War Zone</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--amber-l)"></div>High Alert / Flashpoint</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--bb)"></div>U.S. Military Base</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--gb)"></div>U.S. Ally</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Nuclear Facility</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>Monitoring / Patrol</div>
-      </div>
-
-      <div id="map-status-label">
-        <span class="blink-dot"></span>
-        <span id="map-label-text">U.S. SITUATION MAP — LIVE</span>
-      </div>
+      <div id="map-usmap" class="map-layer on"><div id="world-map"></div></div>
+      <div id="map-3d-globe" class="map-layer"><div id="world-3d"></div><div class="globe-hint">Drag to rotate - scroll to zoom</div></div>
+      <iframe id="map-flights" class="map-layer" src="https://globe.adsbexchange.com/?lat=30&lon=-20&zoom=2&mil=true" allowfullscreen title="Live Flights ADS-B"></iframe>
+      <iframe id="map-ships" class="map-layer" src="https://www.vessel-finder.com/vessels/map?lat=20&lon=0&z=2" allowfullscreen title="AIS Ship Traffic"></iframe>
+      <iframe id="map-weather" class="map-layer" src="https://embed.windy.com/embed2.html?lat=20&lon=0&detailLat=20&detailLon=0&zoom=2&width=990&height=600&pane=rain&overlay=rain&product=ecmwf&level=surface&pressure=true&message=true" allowfullscreen title="Weather Radar"></iframe>
+      <iframe id="map-fires" class="map-layer" src="https://www.arcgis.com/apps/instant/sidebar/index.html?appid=8fae74b2e0534e86abd47cdec84046d6" allowfullscreen title="Wildfire Map"></iframe>
+      <iframe id="map-quakes" class="map-layer" src="https://earthquake.usgs.gov/earthquakes/map/" allowfullscreen title="USGS Seismic Map"></iframe>
+      <iframe id="map-wind" class="map-layer" src="https://embed.windy.com/embed2.html?lat=20&lon=0&detailLat=20&detailLon=0&zoom=2&width=990&height=600&pane=wind&overlay=wind&product=ecmwf&level=surface&pressure=true&message=true" allowfullscreen title="Wind Map"></iframe>
+      <iframe id="map-hurricanes" class="map-layer" src="https://digitalcyclone.com/nhc/nhcWidget.aspx?id=NHC_WIDGET" allowfullscreen title="Hurricane Track"></iframe>
+      <iframe id="map-satellite" class="map-layer" src="https://embed.windy.com/embed2.html?lat=20&lon=0&detailLat=20&detailLon=0&zoom=2&width=990&height=600&pane=satellite&overlay=satellite&product=ecmwf&level=surface&pressure=true&message=true" allowfullscreen title="Satellite Imagery"></iframe>
+      <div id="map-legend"><div class="legend-item"><span class="legend-dot" style="background:var(--rb)"></span>Active Conflict / War Zone</div><div class="legend-item"><span class="legend-dot" style="background:var(--amber-l)"></span>High Alert / Flashpoint</div><div class="legend-item advanced-only"><span class="legend-dot" style="background:var(--bb)"></span>U.S. Military Base</div><div class="legend-item advanced-only"><span class="legend-dot" style="background:var(--gb)"></span>U.S. Ally</div><div class="legend-item advanced-only"><span class="legend-dot" style="background:var(--purple)"></span>Nuclear Facility</div></div>
+      <div id="map-status-label"><span class="blink-dot"></span><span id="map-label-text">WORLD SITUATION MAP - LIVE</span></div>
     </div>
+    <div id="data-strip" class="advanced-only"><div class="data-chip" onclick="setMap('flights')"><div class="dc-label">Live Flights</div><div class="dc-val c">ADS-B</div><div class="dc-sub">military filter ready</div></div><div class="data-chip" onclick="setMap('quakes')"><div class="dc-label">Earthquakes 24h</div><div class="dc-val" id="dc-quakes">...</div><div class="dc-sub">USGS M1.5+</div></div><div class="data-chip" onclick="setMap('fires')"><div class="dc-label">Wildfires</div><div class="dc-val a">LIVE</div><div class="dc-sub">ESRI / NASA FIRMS</div></div><div class="data-chip"><div class="dc-label">War Zones</div><div class="dc-val r">6</div><div class="dc-sub">active tracked</div></div><div class="data-chip" onclick="setMap('weather')"><div class="dc-label">WX Alerts</div><div class="dc-val a" id="dc-wx">...</div><div class="dc-sub">NWS active count</div></div></div>
+  </section>
 
-    <!-- BOTTOM DATA STRIP -->
-    <div id="data-strip">
-      <div class="data-chip" onclick="setMap('flights')"><div class="dc-label">Live Flights</div><div class="dc-val c">~9,800</div><div class="dc-sub">ADS-B tracked</div></div>
-      <div class="data-chip" onclick="setMap('quakes')"><div class="dc-label">Earthquakes 24h</div><div class="dc-val" id="dc-quakes">…</div><div class="dc-sub">USGS M1.5+</div></div>
-      <div class="data-chip" onclick="setMap('fires')"><div class="dc-label">Wildfires (US)</div><div class="dc-val a">~140</div><div class="dc-sub">NIFC Active</div></div>
-      <div class="data-chip"><div class="dc-label">National Debt</div><div class="dc-val r">$36.2T</div><div class="dc-sub">Rising daily</div></div>
-      <div class="data-chip"><div class="dc-label">Unemployment</div><div class="dc-val g">3.9%</div><div class="dc-sub">BLS Latest</div></div>
-      <div class="data-chip" onclick="setMap('weather')"><div class="dc-label">Active WX Alerts</div><div class="dc-val a" id="dc-wx">…</div><div class="dc-sub">NWS Live</div></div>
-      <div class="data-chip"><div class="dc-label">Port Ships</div><div class="dc-val c">~4,200</div><div class="dc-sub">AIS tracked</div></div>
-      <div class="data-chip" style="border-right:none"><div class="dc-label">Congress</div><div class="dc-val g">IN SESSION</div><div class="dc-sub">Senate + House</div></div>
-    </div>
-  </div>
+  <aside id="right-panel" class="advanced-only">
+    <div class="rp-tabs"><button class="rp-tab on" onclick="setRPTab('wh')">White House</button><button class="rp-tab" onclick="setRPTab('ai')">AI Intel</button><button class="rp-tab" onclick="setRPTab('risk')">Risk</button><button class="rp-tab" onclick="setRPTab('media')">Media</button></div>
+    <div class="rp-panel on" id="rp-wh"><a class="rp-link" href="https://www.whitehouse.gov/live/" target="_blank" rel="noopener"><span class="rp-link-icon">LIVE</span><div><div class="rp-link-label">Stream</div><div class="rp-link-title">White House Live</div></div></a><a class="rp-link" href="https://www.whitehouse.gov/" target="_blank" rel="noopener"><span class="rp-link-icon">WH</span><div><div class="rp-link-label">Official</div><div class="rp-link-title">WhiteHouse.gov</div></div></a><a class="rp-link" href="https://www.defense.gov/" target="_blank" rel="noopener"><span class="rp-link-icon">DOD</span><div><div class="rp-link-label">Military</div><div class="rp-link-title">Pentagon / DoD</div></div></a><a class="rp-link" href="https://www.dhs.gov/" target="_blank" rel="noopener"><span class="rp-link-icon">DHS</span><div><div class="rp-link-label">Security</div><div class="rp-link-title">Homeland Security</div></div></a></div>
+    <div class="rp-panel" id="rp-ai"><div class="ai-card"><div class="ai-card-hdr"><span class="ai-badge">AI</span>Strategic Brief</div><div class="ai-content" id="ai-posture">Global posture is <strong>elevated</strong>. Watch Ukraine, Gaza/Israel, Taiwan Strait, Iran, Yemen, and North Korea. Red map zones represent active war or critical instability.</div><button class="ai-refresh" onclick="refreshAI('posture')"><span class="ai-spinner" id="sp-posture"></span>Refresh</button></div><div class="ai-card"><div class="ai-card-hdr"><span class="ai-badge">AI</span>Market Watch</div><div class="ai-content" id="ai-econ">Markets are sensitive to oil, bond yields, and geopolitical risk. The strip above attempts live data and falls back cleanly if a free API blocks access.</div><button class="ai-refresh" onclick="refreshAI('econ')"><span class="ai-spinner" id="sp-econ"></span>Refresh</button></div></div>
+    <div class="rp-panel" id="rp-risk"><div style="padding:8px 12px;font-family:var(--mono);font-size:8px;color:var(--muted);border-bottom:1px solid var(--bdr)">Country Instability Index</div><div class="risk-meter" id="risk-list"></div></div>
+    <div class="rp-panel" id="rp-media"><div class="media-col"><div class="media-col-title">Sources</div><a class="media-link" href="https://www.reuters.com/" target="_blank" rel="noopener">Reuters</a><a class="media-link" href="https://apnews.com/" target="_blank" rel="noopener">AP News</a><a class="media-link" href="https://www.foxnews.com/" target="_blank" rel="noopener">Fox News</a><a class="media-link" href="https://www.bbc.com/news" target="_blank" rel="noopener">BBC News</a><a class="media-link" href="https://www.understandingwar.org/" target="_blank" rel="noopener">ISW War Studies</a></div></div>
+  </aside>
+</main>
 
-  <!-- RIGHT PANEL -->
-  <div id="right-panel">
-    <div class="rp-tabs">
-      <div class="rp-tab on" onclick="setRPTab('wh')">White House</div>
-      <div class="rp-tab" onclick="setRPTab('ai')">AI Intel</div>
-      <div class="rp-tab" onclick="setRPTab('tv')">Live TV</div>
-      <div class="rp-tab" onclick="setRPTab('cams')">Cams</div>
-      <div class="rp-tab" onclick="setRPTab('risk')">Risk</div>
-      <div class="rp-tab" onclick="setRPTab('media')">Media</div>
-    </div>
+<section id="fullpage-sections" class="advanced-only">
+  <div class="drag-section" id="sec-tv"><div class="section-header"><span class="sec-eyebrow">// Broadcast</span><div><div class="sec-title">Live News TV</div><div class="sec-sub">Click any feed to expand</div></div></div><div class="stream-grid">
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/h3MuIUNCCLI?autoplay=1','Fox News Live')"><iframe src="https://www.youtube.com/embed/h3MuIUNCCLI" loading="lazy"></iframe><div class="stream-cell-label"><span>FOX NEWS</span><span class="live-indicator">LIVE</span></div></div>
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/eWTZVDpLVNk?autoplay=1','CNN Live')"><iframe src="https://www.youtube.com/embed/eWTZVDpLVNk" loading="lazy"></iframe><div class="stream-cell-label"><span>CNN</span><span class="live-indicator">LIVE</span></div></div>
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/ar9sHhQBMbM?autoplay=1','Bloomberg TV Live')"><iframe src="https://www.youtube.com/embed/ar9sHhQBMbM" loading="lazy"></iframe><div class="stream-cell-label"><span>BLOOMBERG</span><span class="live-indicator">LIVE</span></div></div>
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/F5uA_isUqlo?autoplay=1','Sky News Live')"><iframe src="https://www.youtube.com/embed/F5uA_isUqlo" loading="lazy"></iframe><div class="stream-cell-label"><span>SKY NEWS</span><span class="live-indicator">LIVE</span></div></div>
+  </div></div>
+  <div class="drag-section" id="sec-cams"><div class="section-header"><span class="sec-eyebrow">// Surveillance</span><div><div class="sec-title">Live Global Webcams</div><div class="sec-sub">U.S. - allies - watch zones - space</div></div></div><div class="stream-grid">
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/1EiC9bvVGnk?autoplay=1','NYC Live')"><iframe src="https://www.youtube.com/embed/1EiC9bvVGnk" loading="lazy"></iframe><div class="stream-cell-label"><span>NYC Times Square</span><span>US</span></div></div>
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/PGHtmtWMQsY?autoplay=1','Jerusalem Live')"><iframe src="https://www.youtube.com/embed/PGHtmtWMQsY" loading="lazy"></iframe><div class="stream-cell-label"><span>Jerusalem</span><span>IL</span></div></div>
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/AdLzCH2sUoM?autoplay=1','London Live')"><iframe src="https://www.youtube.com/embed/AdLzCH2sUoM" loading="lazy"></iframe><div class="stream-cell-label"><span>London</span><span>UK</span></div></div>
+    <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw&autoplay=1','NASA ISS Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw" loading="lazy"></iframe><div class="stream-cell-label"><span>NASA ISS</span><span>SPACE</span></div></div>
+  </div></div>
+  <div class="drag-section" id="sec-wh"><div class="section-header"><span class="sec-eyebrow">// Executive</span><div><div class="sec-title">White House Watch</div><div class="sec-sub">Official U.S. government channels</div></div></div><div class="wh-grid"><a class="wh-card" href="https://www.whitehouse.gov/live/" target="_blank" rel="noopener"><strong>White House Live</strong><p>Official live broadcast.</p></a><a class="wh-card" href="https://www.defense.gov/" target="_blank" rel="noopener"><strong>Pentagon / DoD</strong><p>Defense updates.</p></a><a class="wh-card" href="https://www.dhs.gov/" target="_blank" rel="noopener"><strong>DHS</strong><p>Homeland security.</p></a><a class="wh-card" href="https://www.state.gov/" target="_blank" rel="noopener"><strong>State Dept.</strong><p>Diplomacy updates.</p></a></div></div>
+  <div class="drag-section" id="sec-markets"><div class="section-header"><span class="sec-eyebrow">// Economics</span><div><div class="sec-title">Markets & Economy</div><div class="sec-sub">TradingView live tools</div></div></div><div style="padding:10px;border-bottom:1px solid var(--bdr)"><div class="ticker-frame"><iframe src="https://s.tradingview.com/embed-widget/tickers/?locale=en#%7B%22symbols%22%3A%5B%7B%22proName%22%3A%22FOREXCOM%3ASPXUSD%22%2C%22title%22%3A%22S%26P+500%22%7D%2C%7B%22proName%22%3A%22FOREXCOM%3ANSXUSD%22%2C%22title%22%3A%22US+100%22%7D%2C%7B%22proName%22%3A%22FX_IDC%3AEURUSD%22%2C%22title%22%3A%22EUR%2FUSD%22%7D%2C%7B%22proName%22%3A%22BITSTAMP%3ABTCUSD%22%2C%22title%22%3A%22Bitcoin%22%7D%5D%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22showSymbolLogo%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A76%7D"></iframe></div></div><div class="market-charts"><div class="chart-box"><div class="chart-box-hdr">S&P 500</div><div class="chart-frame"><iframe src="https://s.tradingview.com/embed-widget/advanced-chart/?locale=en#%7B%22autosize%22%3Atrue%2C%22symbol%22%3A%22SP%3ASPX%22%2C%22interval%22%3A%22D%22%2C%22timezone%22%3A%22America%2FNew_York%22%2C%22theme%22%3A%22dark%22%2C%22style%22%3A%221%22%7D"></iframe></div></div><div class="chart-box"><div class="chart-box-hdr">Bitcoin</div><div class="chart-frame"><iframe src="https://s.tradingview.com/embed-widget/advanced-chart/?locale=en#%7B%22autosize%22%3Atrue%2C%22symbol%22%3A%22COINBASE%3ABTCUSD%22%2C%22interval%22%3A%22D%22%2C%22timezone%22%3A%22America%2FNew_York%22%2C%22theme%22%3A%22dark%22%2C%22style%22%3A%221%22%7D"></iframe></div></div></div></div>
+  <div class="drag-section" id="sec-media"><div class="section-header"><span class="sec-eyebrow">// Intelligence</span><div><div class="sec-title">Media Watch</div><div class="sec-sub">Track the source and the narrative</div></div></div><div class="media-grid"><div class="media-col"><div class="media-col-title">Conservative</div><a class="media-link" href="https://www.foxnews.com/" target="_blank">Fox News</a><a class="media-link" href="https://www.dailywire.com/" target="_blank">Daily Wire</a><a class="media-link" href="https://nypost.com/" target="_blank">New York Post</a></div><div class="media-col"><div class="media-col-title">Mainstream</div><a class="media-link" href="https://www.reuters.com/" target="_blank">Reuters</a><a class="media-link" href="https://apnews.com/" target="_blank">AP News</a><a class="media-link" href="https://www.cnn.com/" target="_blank">CNN</a></div><div class="media-col"><div class="media-col-title">OSINT</div><a class="media-link" href="https://www.bellingcat.com/" target="_blank">Bellingcat</a><a class="media-link" href="https://www.understandingwar.org/" target="_blank">ISW War Studies</a><a class="media-link" href="https://foreignpolicy.com/" target="_blank">Foreign Policy</a></div></div></div>
+</section>
 
-    <!-- WHITE HOUSE TAB -->
-    <div class="rp-panel on" id="rp-wh">
-      <div style="padding:8px 12px;font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--bdr);">🇺🇸 Executive Branch Access</div>
-      <a href="https://www.whitehouse.gov/live/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">📺</span><div><div class="rp-link-label">Live Stream</div><div class="rp-link-title">White House Live</div></div></a>
-      <a href="https://www.whitehouse.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">🏛️</span><div><div class="rp-link-label">Official Site</div><div class="rp-link-title">WhiteHouse.gov</div></div></a>
-      <a href="https://truthsocial.com/@realDonaldTrump" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">💬</span><div><div class="rp-link-label">President Direct</div><div class="rp-link-title">Trump Truth Social</div></div></a>
-      <a href="https://www.youtube.com/@WhiteHouse/streams" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">▶</span><div><div class="rp-link-label">Video Streams</div><div class="rp-link-title">WH YouTube</div></div></a>
-      <a href="https://www.c-span.org/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">📻</span><div><div class="rp-link-label">Government TV</div><div class="rp-link-title">C-SPAN Live</div></div></a>
-      <a href="https://www.senate.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">🏛</span><div><div class="rp-link-label">Legislature</div><div class="rp-link-title">U.S. Senate</div></div></a>
-      <a href="https://www.house.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">🏛</span><div><div class="rp-link-label">Legislature</div><div class="rp-link-title">U.S. House</div></div></a>
-      <a href="https://www.supremecourt.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">⚖️</span><div><div class="rp-link-label">Judiciary</div><div class="rp-link-title">Supreme Court</div></div></a>
-      <a href="https://www.defense.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">🪖</span><div><div class="rp-link-label">Military</div><div class="rp-link-title">Pentagon / DoD</div></div></a>
-      <a href="https://www.dhs.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">🛡</span><div><div class="rp-link-label">Security</div><div class="rp-link-title">Homeland Security</div></div></a>
-      <a href="https://www.state.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">🌐</span><div><div class="rp-link-label">Diplomacy</div><div class="rp-link-title">State Dept.</div></div></a>
-      <a href="https://www.fbi.gov/" target="_blank" rel="noopener" class="rp-link"><span class="rp-link-icon">🔎</span><div><div class="rp-link-label">Federal</div><div class="rp-link-title">FBI.gov</div></div></a>
-      <a href="https://www.cia.gov/stories/news/" target="_blank" rel="noopener" class="rp-link" style="border-bottom:none"><span class="rp-link-icon">🕵️</span><div><div class="rp-link-label">Intelligence</div><div class="rp-link-title">CIA Newsroom</div></div></a>
-    </div>
-
-    <!-- AI INTEL TAB -->
-    <div class="rp-panel" id="rp-ai">
-      <div class="ai-card">
-        <div class="ai-card-hdr"><div class="ai-badge">AI</div>Strategic Posture Briefing</div>
-        <div class="ai-content" id="ai-posture">
-          The U.S. currently maintains an <strong>elevated threat posture</strong> across three primary theaters. The Pacific remains the highest priority: PLA naval activity near Taiwan has increased 34% over prior quarter. EUCOM is reinforcing NATO's eastern flank. Central Command is managing dual-front pressure across Gaza and Yemen. <strong>Recommended monitoring: Taiwan Strait, Houthi maritime threats, and IRGC proxy activity.</strong>
-        </div>
-        <div class="ai-refresh" onclick="refreshAI('posture')"><div class="ai-spinner" id="sp-posture"></div>↻ Refresh Analysis</div>
-      </div>
-      <div class="ai-card">
-        <div class="ai-card-hdr"><div class="ai-badge">AI</div>Economic Intelligence</div>
-        <div class="ai-content" id="ai-econ">
-          Markets are pricing in a <strong>25% probability of a September rate cut</strong>. Fed rhetoric remains hawkish but data is softening. Dollar strength is pressuring EM debt. <strong>Key risk: debt ceiling debate could trigger credit market volatility by Q4 2025.</strong> Gold and oil are responding to safe-haven demand amid geopolitical tensions.
-        </div>
-        <div class="ai-refresh" onclick="refreshAI('econ')"><div class="ai-spinner" id="sp-econ"></div>↻ Refresh Analysis</div>
-      </div>
-      <div class="ai-card">
-        <div class="ai-card-hdr"><div class="ai-badge">AI</div>Daily Intel Brief</div>
-        <div class="ai-content" id="ai-daily">
-          <strong>Top signals today:</strong> Russian forces are consolidating gains in Donetsk; IDF is conducting targeted operations in Gaza northern corridor; North Korea conducted an ICBM engine test; Senate is 3 votes short on the defense bill; BTC broke $70k resistance — institutional demand is driving momentum. <strong>Watch: EU emergency meeting on energy security.</strong>
-        </div>
-        <div class="ai-refresh" onclick="refreshAI('daily')"><div class="ai-spinner" id="sp-daily"></div>↻ Refresh Brief</div>
-      </div>
-      <div class="ai-card">
-        <div class="ai-card-hdr"><div class="ai-badge">AI</div>48-Hour Forecast</div>
-        <div class="ai-content" id="ai-forecast">
-          <strong>High probability events:</strong> Fed speaker (Powell) at 2pm ET tomorrow — expect market volatility. UNGA side-meetings on Gaza likely to produce no binding resolution. PLA will likely continue Taiwan Strait transits through weekend. <strong>Monitor:</strong> NK satellite launch window opens in 72 hours. Hurricane activity in Atlantic — 2 disturbances tracked.
-        </div>
-        <div class="ai-refresh" onclick="refreshAI('forecast')"><div class="ai-spinner" id="sp-forecast"></div>↻ Refresh Forecast</div>
-      </div>
-    </div>
-
-    <!-- LIVE TV TAB (sidebar) -->
-    <div class="rp-panel" id="rp-tv">
-      <div style="padding:8px 12px;font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--bdr);">Click to expand full screen</div>
-      <div class="rp-stream-grid">
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/h3MuIUNCCLI?autoplay=1','Fox News Live')"><iframe src="https://www.youtube.com/embed/h3MuIUNCCLI" loading="lazy" title="Fox"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>FOX</span><span>🇺🇸</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/eWTZVDpLVNk?autoplay=1','CNN Live')"><iframe src="https://www.youtube.com/embed/eWTZVDpLVNk" loading="lazy" title="CNN"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>CNN</span><span>🇺🇸</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/ar9sHhQBMbM?autoplay=1','Bloomberg TV Live')"><iframe src="https://www.youtube.com/embed/ar9sHhQBMbM" loading="lazy" title="Bloomberg"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>BLOOMBERG</span><span>🇺🇸</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/F5uA_isUqlo?autoplay=1','Sky News Live')"><iframe src="https://www.youtube.com/embed/F5uA_isUqlo" loading="lazy" title="Sky News"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>SKY NEWS</span><span>🇬🇧</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/b9mdOtNMoto?autoplay=1','Al Jazeera Live')"><iframe src="https://www.youtube.com/embed/b9mdOtNMoto" loading="lazy" title="AJ"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>AL JAZEERA</span><span>🇶🇦</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/vOTiJkg1voo?autoplay=1','MSNBC Live')"><iframe src="https://www.youtube.com/embed/vOTiJkg1voo" loading="lazy" title="MSNBC"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>MSNBC</span><span>🇺🇸</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/9Auq9mYxFEE?autoplay=1','ABC News Live')"><iframe src="https://www.youtube.com/embed/9Auq9mYxFEE" loading="lazy" title="ABC"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>ABC</span><span>🇺🇸</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q&autoplay=1','C-SPAN Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q" loading="lazy" title="CSPAN"></iframe><div class="stream-label"><span><span class="stream-live-dot"></span>C-SPAN</span><span>🇺🇸</span></div></div>
-      </div>
-    </div>
-
-    <!-- CAMS TAB (sidebar) -->
-    <div class="rp-panel" id="rp-cams">
-      <div style="padding:8px 12px;font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--bdr);">U.S. & Global — Click to expand</div>
-      <div class="rp-stream-grid">
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/1EiC9bvVGnk?autoplay=1','NYC — Times Square Live')"><iframe src="https://www.youtube.com/embed/1EiC9bvVGnk" loading="lazy" title="NYC"></iframe><div class="stream-label"><span>🗽 NYC</span><span>NY</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/hRL2g0c5kso?autoplay=1','Washington DC Live')"><iframe src="https://www.youtube.com/embed/hRL2g0c5kso" loading="lazy" title="DC"></iframe><div class="stream-label"><span>🏛 D.C.</span><span>DC</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/oCDaHdCiSoE?autoplay=1','Miami Beach Live')"><iframe src="https://www.youtube.com/embed/oCDaHdCiSoE" loading="lazy" title="Miami"></iframe><div class="stream-label"><span>🌴 Miami</span><span>FL</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/PGHtmtWMQsY?autoplay=1','Jerusalem — Western Wall Live')"><iframe src="https://www.youtube.com/embed/PGHtmtWMQsY" loading="lazy" title="Jerusalem"></iframe><div class="stream-label"><span>🇮🇱 Jerusalem</span><span>IL</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/AdLzCH2sUoM?autoplay=1','London Live')"><iframe src="https://www.youtube.com/embed/AdLzCH2sUoM" loading="lazy" title="London"></iframe><div class="stream-label"><span>🇬🇧 London</span><span>UK</span></div></div>
-        <div class="rp-stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw&autoplay=1','NASA ISS Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw" loading="lazy" title="ISS"></iframe><div class="stream-label"><span>🛸 NASA ISS</span><span>SPACE</span></div></div>
-      </div>
-    </div>
-
-    <!-- RISK TAB -->
-    <div class="rp-panel" id="rp-risk">
-      <div style="padding:8px 12px;font-family:var(--mono);font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--bdr);">Country Instability Index — AI Scored</div>
-      <div class="risk-meter" id="risk-list"></div>
-    </div>
-
-    <!-- MEDIA TAB -->
-    <div class="rp-panel" id="rp-media">
-      <div class="src-block"><div class="src-block-title" style="color:var(--rb);">Conservative</div>
-        <a href="https://www.foxnews.com/" target="_blank" rel="noopener" class="src-link" style="--clr:var(--rb)">Fox News</a>
-        <a href="https://www.dailywire.com/" target="_blank" rel="noopener" class="src-link">Daily Wire</a>
-        <a href="https://nypost.com/" target="_blank" rel="noopener" class="src-link">New York Post</a>
-        <a href="https://www.breitbart.com/" target="_blank" rel="noopener" class="src-link">Breitbart</a>
-        <a href="https://www.newsmax.com/" target="_blank" rel="noopener" class="src-link">Newsmax</a>
-        <a href="https://www.oann.com/" target="_blank" rel="noopener" class="src-link">OAN</a>
-      </div>
-      <div class="src-block"><div class="src-block-title" style="color:var(--bb);">Mainstream</div>
-        <a href="https://www.reuters.com/" target="_blank" rel="noopener" class="src-link">Reuters</a>
-        <a href="https://apnews.com/" target="_blank" rel="noopener" class="src-link">AP News</a>
-        <a href="https://www.cnn.com/" target="_blank" rel="noopener" class="src-link">CNN</a>
-        <a href="https://www.nytimes.com/" target="_blank" rel="noopener" class="src-link">New York Times</a>
-        <a href="https://www.politico.com/" target="_blank" rel="noopener" class="src-link">Politico</a>
-      </div>
-      <div class="src-block" style="border-bottom:none"><div class="src-block-title" style="color:var(--amber-l);">OSINT / Global Intel</div>
-        <a href="https://www.bellingcat.com/" target="_blank" rel="noopener" class="src-link">Bellingcat OSINT</a>
-        <a href="https://foreignpolicy.com/" target="_blank" rel="noopener" class="src-link">Foreign Policy</a>
-        <a href="https://www.understandingwar.org/" target="_blank" rel="noopener" class="src-link">ISW War Studies</a>
-        <a href="https://www.stratfor.com/" target="_blank" rel="noopener" class="src-link">Stratfor</a>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /app-layout -->
-
-<!-- ═══ CUSTOMIZE BAR ════════════════════════════════ -->
-<div id="customize-bar">
-  <span class="cb-hint">⠿ DRAG SECTIONS TO REORDER · ▼ TO COLLAPSE · LAYOUT SAVED AUTOMATICALLY</span>
-  <button class="cb-reset-btn" onclick="resetLayout()">↺ Reset Order</button>
-  <button class="cb-done-btn" onclick="toggleCustomize()">✓ Done</button>
-</div>
-
-<!-- ═══ FULL PAGE SECTIONS ═══════════════════════════ -->
-<div id="fullpage-sections">
-
-  <!-- LIVE TV -->
-  <div class="drag-section" id="sec-tv" data-order="0">
-    <div class="section-header draggable">
-      <span class="drag-handle">⠿⠿</span>
-      <span class="sec-eyebrow">// Broadcast</span>
-      <div>
-        <div class="sec-title">Live News TV</div>
-        <div class="sec-sub">12 channels · Click any to expand full screen</div>
-      </div>
-      <div class="sec-controls">
-        <div class="sec-ctrl" title="Minimize" onclick="toggleSection(this)">▼</div>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="stream-grid">
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/h3MuIUNCCLI?autoplay=1','Fox News Live')"><iframe src="https://www.youtube.com/embed/h3MuIUNCCLI" loading="lazy" title="Fox News"></iframe><div class="stream-cell-label"><span>FOX NEWS</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/eWTZVDpLVNk?autoplay=1','CNN Live')"><iframe src="https://www.youtube.com/embed/eWTZVDpLVNk" loading="lazy" title="CNN"></iframe><div class="stream-cell-label"><span>CNN</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/ar9sHhQBMbM?autoplay=1','Bloomberg TV Live')"><iframe src="https://www.youtube.com/embed/ar9sHhQBMbM" loading="lazy" title="Bloomberg TV"></iframe><div class="stream-cell-label"><span>BLOOMBERG TV</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/F5uA_isUqlo?autoplay=1','Sky News Live')"><iframe src="https://www.youtube.com/embed/F5uA_isUqlo" loading="lazy" title="Sky News"></iframe><div class="stream-cell-label"><span>SKY NEWS</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇬🇧</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/b9mdOtNMoto?autoplay=1','Al Jazeera Live')"><iframe src="https://www.youtube.com/embed/b9mdOtNMoto" loading="lazy" title="Al Jazeera"></iframe><div class="stream-cell-label"><span>AL JAZEERA</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇶🇦</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/9Auq9mYxFEE?autoplay=1','ABC News Live')"><iframe src="https://www.youtube.com/embed/9Auq9mYxFEE" loading="lazy" title="ABC News"></iframe><div class="stream-cell-label"><span>ABC NEWS</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/vOTiJkg1voo?autoplay=1','MSNBC Live')"><iframe src="https://www.youtube.com/embed/vOTiJkg1voo" loading="lazy" title="MSNBC"></iframe><div class="stream-cell-label"><span>MSNBC</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/w_Ma8oQLmSM?autoplay=1','NBC News Now')"><iframe src="https://www.youtube.com/embed/w_Ma8oQLmSM" loading="lazy" title="NBC News"></iframe><div class="stream-cell-label"><span>NBC NEWS NOW</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q&autoplay=1','C-SPAN Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCBi2mrWuNuyYy4gbM6fU18Q" loading="lazy" title="C-SPAN"></iframe><div class="stream-cell-label"><span>C-SPAN</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCVTyTA7-g9nopHeHbeuvpRA&autoplay=1','CBS News Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCVTyTA7-g9nopHeHbeuvpRA" loading="lazy" title="CBS News"></iframe><div class="stream-cell-label"><span>CBS NEWS</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCNye-wNBqNL5ZzHSJj3l8Bg&autoplay=1','The Hill Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCNye-wNBqNL5ZzHSJj3l8Bg" loading="lazy" title="The Hill"></iframe><div class="stream-cell-label"><span>THE HILL</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-        <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCoSk9YDUVF4yGE3nCjVdBJA&autoplay=1','PBS NewsHour')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCoSk9YDUVF4yGE3nCjVdBJA" loading="lazy" title="PBS NewsHour"></iframe><div class="stream-cell-label"><span>PBS NEWSHOUR</span><div class="live-indicator">LIVE</div><span class="scl-flag">🇺🇸</span></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WEBCAMS -->
-  <div class="drag-section" id="sec-cams" data-order="1">
-    <div class="section-header draggable">
-      <span class="drag-handle">⠿⠿</span>
-      <span class="sec-eyebrow">// Surveillance</span>
-      <div>
-        <div class="sec-title">Live Global Webcams</div>
-        <div class="sec-sub">40+ cameras · U.S. · Allies · Watch Zones · Space</div>
-      </div>
-      <div class="sec-controls">
-        <div class="sec-ctrl" title="Minimize" onclick="toggleSection(this)">▼</div>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="cam-cat-tabs">
-        <div class="cam-cat-tab on" onclick="setCamCat('usa')">🇺🇸 United States</div>
-        <div class="cam-cat-tab" onclick="setCamCat('allies')">🌍 U.S. Allies</div>
-        <div class="cam-cat-tab" onclick="setCamCat('mideast')">🕌 Middle East</div>
-        <div class="cam-cat-tab" onclick="setCamCat('watch')">⚠ Watch Zones</div>
-        <div class="cam-cat-tab" onclick="setCamCat('space')">🛸 Space</div>
-      </div>
-
-      <!-- USA -->
-      <div class="cam-cat-panel on" id="camp-usa">
-        <div class="stream-grid">
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/1EiC9bvVGnk?autoplay=1','NYC — Times Square Live')"><iframe src="https://www.youtube.com/embed/1EiC9bvVGnk" loading="lazy" title="NYC"></iframe><div class="stream-cell-label"><span>🗽 NYC — Times Square</span><div class="live-indicator">LIVE</div><span class="scl-flag">NY</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/hRL2g0c5kso?autoplay=1','Washington D.C. Live')"><iframe src="https://www.youtube.com/embed/hRL2g0c5kso" loading="lazy" title="DC"></iframe><div class="stream-cell-label"><span>🏛 Washington D.C.</span><div class="live-indicator">LIVE</div><span class="scl-flag">DC</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/AdUw5RdyZxI?autoplay=1','Las Vegas Strip Live')"><iframe src="https://www.youtube.com/embed/AdUw5RdyZxI" loading="lazy" title="Vegas"></iframe><div class="stream-cell-label"><span>🎰 Las Vegas Strip</span><div class="live-indicator">LIVE</div><span class="scl-flag">NV</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/oCDaHdCiSoE?autoplay=1','Miami Beach Live')"><iframe src="https://www.youtube.com/embed/oCDaHdCiSoE" loading="lazy" title="Miami"></iframe><div class="stream-cell-label"><span>🌴 Miami Beach</span><div class="live-indicator">LIVE</div><span class="scl-flag">FL</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/86YLFOog4GM?autoplay=1','Chicago Live')"><iframe src="https://www.youtube.com/embed/86YLFOog4GM" loading="lazy" title="Chicago"></iframe><div class="stream-cell-label"><span>🌆 Chicago Loop</span><div class="live-indicator">LIVE</div><span class="scl-flag">IL</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/LciMCmkOvVc?autoplay=1','San Francisco Live')"><iframe src="https://www.youtube.com/embed/LciMCmkOvVc" loading="lazy" title="SF"></iframe><div class="stream-cell-label"><span>🌁 San Francisco</span><div class="live-indicator">LIVE</div><span class="scl-flag">CA</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/DNjDzFVDjCE?autoplay=1','Los Angeles Live')"><iframe src="https://www.youtube.com/embed/DNjDzFVDjCE" loading="lazy" title="LA"></iframe><div class="stream-cell-label"><span>🌞 Los Angeles</span><div class="live-indicator">LIVE</div><span class="scl-flag">CA</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/wqJeluK3-zs?autoplay=1','New Orleans Live')"><iframe src="https://www.youtube.com/embed/wqJeluK3-zs" loading="lazy" title="NOLA"></iframe><div class="stream-cell-label"><span>🎷 New Orleans</span><div class="live-indicator">LIVE</div><span class="scl-flag">LA</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/Zsd6SrdGc2A?autoplay=1','Niagara Falls Live')"><iframe src="https://www.youtube.com/embed/Zsd6SrdGc2A" loading="lazy" title="Niagara"></iframe><div class="stream-cell-label"><span>💧 Niagara Falls</span><div class="live-indicator">LIVE</div><span class="scl-flag">NY</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/nDFJVYKLjOU?autoplay=1','Times Square Night Live')"><iframe src="https://www.youtube.com/embed/nDFJVYKLjOU" loading="lazy" title="Times Sq Night"></iframe><div class="stream-cell-label"><span>🌙 NYC — Night View</span><div class="live-indicator">LIVE</div><span class="scl-flag">NY</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCxnT59KMamK3LJBRzPM4Zfg&autoplay=1','Houston Texas Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCxnT59KMamK3LJBRzPM4Zfg" loading="lazy" title="Houston"></iframe><div class="stream-cell-label"><span>🤠 Houston, Texas</span><div class="live-indicator">LIVE</div><span class="scl-flag">TX</span></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCKNkCh8VlKqeOWuFJT6fYXg&autoplay=1','Denver Colorado Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCKNkCh8VlKqeOWuFJT6fYXg" loading="lazy" title="Denver"></iframe><div class="stream-cell-label"><span>🏔 Denver, Colorado</span><div class="live-indicator">LIVE</div><span class="scl-flag">CO</span></div></div>
-        </div>
-      </div>
-
-      <!-- U.S. ALLIES -->
-      <div class="cam-cat-panel" id="camp-allies">
-        <div class="cam-subsection-hdr"><span class="flag-row">🇬🇧🇮🇱🇫🇷🇩🇪🇯🇵🇰🇷🇦🇺🇮🇹🇵🇱🇦🇪</span>U.S. Allies — Europe, Asia-Pacific, Middle East</div>
-        <div class="stream-grid">
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/AdLzCH2sUoM?autoplay=1','London — Big Ben Live')"><iframe src="https://www.youtube.com/embed/AdLzCH2sUoM" loading="lazy" title="London"></iframe><div class="stream-cell-label"><span>🇬🇧 London — Big Ben</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/PGHtmtWMQsY?autoplay=1','Jerusalem Western Wall Live')"><iframe src="https://www.youtube.com/embed/PGHtmtWMQsY" loading="lazy" title="Jerusalem"></iframe><div class="stream-cell-label"><span>🇮🇱 Jerusalem — W. Wall</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/cF_yWGIVmTo?autoplay=1','Tel Aviv Live')"><iframe src="https://www.youtube.com/embed/cF_yWGIVmTo" loading="lazy" title="Tel Aviv"></iframe><div class="stream-cell-label"><span>🇮🇱 Tel Aviv Beach</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/t7GzZNPlJA8?autoplay=1','Paris Eiffel Tower Live')"><iframe src="https://www.youtube.com/embed/t7GzZNPlJA8" loading="lazy" title="Paris"></iframe><div class="stream-cell-label"><span>🇫🇷 Paris — Eiffel Tower</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/uVCp4IWlDGM?autoplay=1','Berlin Brandenburg Gate Live')"><iframe src="https://www.youtube.com/embed/uVCp4IWlDGM" loading="lazy" title="Berlin"></iframe><div class="stream-cell-label"><span>🇩🇪 Berlin — Brandenburg</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/h1o_MFWQBIM?autoplay=1','Tokyo Shibuya Live')"><iframe src="https://www.youtube.com/embed/h1o_MFWQBIM" loading="lazy" title="Tokyo"></iframe><div class="stream-cell-label"><span>🇯🇵 Tokyo — Shibuya</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/GDpQueue5SQ?autoplay=1','Seoul Live')"><iframe src="https://www.youtube.com/embed/GDpQueue5SQ" loading="lazy" title="Seoul"></iframe><div class="stream-cell-label"><span>🇰🇷 Seoul Downtown</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/pCo0Y21TfI0?autoplay=1','Rome Live')"><iframe src="https://www.youtube.com/embed/pCo0Y21TfI0" loading="lazy" title="Rome"></iframe><div class="stream-cell-label"><span>🇮🇹 Rome — Trevi Fountain</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/OP7E0VFpEJo?autoplay=1','Warsaw Live')"><iframe src="https://www.youtube.com/embed/OP7E0VFpEJo" loading="lazy" title="Warsaw"></iframe><div class="stream-cell-label"><span>🇵🇱 Warsaw — NATO Flank</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg&autoplay=1','Dubai UAE Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg" loading="lazy" title="Dubai"></iframe><div class="stream-cell-label"><span>🇦🇪 Dubai</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/oBnTpzQc5dQ?autoplay=1','Doha Qatar Live')"><iframe src="https://www.youtube.com/embed/oBnTpzQc5dQ" loading="lazy" title="Doha"></iframe><div class="stream-cell-label"><span>🇶🇦 Doha — US Al Udeid</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/GFWbBKqXrBY?autoplay=1','Amsterdam Live')"><iframe src="https://www.youtube.com/embed/GFWbBKqXrBY" loading="lazy" title="Amsterdam"></iframe><div class="stream-cell-label"><span>🇳🇱 Amsterdam — NATO</span><div class="live-indicator">LIVE</div></div></div>
-        </div>
-      </div>
-
-      <!-- MIDDLE EAST -->
-      <div class="cam-cat-panel" id="camp-mideast">
-        <div class="cam-subsection-hdr">🕌 Middle East — Active Conflict &amp; Crisis Region</div>
-        <div class="stream-grid">
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/PGHtmtWMQsY?autoplay=1','Jerusalem Live')"><iframe src="https://www.youtube.com/embed/PGHtmtWMQsY" loading="lazy" title="Jerusalem"></iframe><div class="stream-cell-label"><span>🇮🇱 Jerusalem</span><div class="live-indicator">CONFLICT ZONE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/cF_yWGIVmTo?autoplay=1','Tel Aviv Live')"><iframe src="https://www.youtube.com/embed/cF_yWGIVmTo" loading="lazy" title="Tel Aviv"></iframe><div class="stream-cell-label"><span>🇮🇱 Tel Aviv</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg&autoplay=1','Dubai Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCPkBmMlEMYJpJ4t_LcOqtZg" loading="lazy" title="Dubai"></iframe><div class="stream-cell-label"><span>🇦🇪 Dubai</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/oBnTpzQc5dQ?autoplay=1','Doha Qatar')"><iframe src="https://www.youtube.com/embed/oBnTpzQc5dQ" loading="lazy" title="Doha"></iframe><div class="stream-cell-label"><span>🇶🇦 Doha, Qatar</span><div class="live-indicator">LIVE</div></div></div>
-        </div>
-      </div>
-
-      <!-- WATCH ZONES (Russia, China, Iran, N.Korea, Ukraine) -->
-      <div class="cam-cat-panel" id="camp-watch">
-        <div class="cam-subsection-hdr">🇷🇺 Russia — Enemy State · Under Sanctions</div>
-        <div class="stream-grid">
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/7nSwkUXbJzU?autoplay=1','St Petersburg Russia Live')"><iframe src="https://www.youtube.com/embed/7nSwkUXbJzU" loading="lazy" title="St Petersburg"></iframe><div class="stream-cell-label"><span>🇷🇺 St. Petersburg</span><div class="live-indicator">WATCH ⚠</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCMV_gsDjAGAGcZt_aDPfGSA&autoplay=1','Moscow Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCMV_gsDjAGAGcZt_aDPfGSA" loading="lazy" title="Moscow"></iframe><div class="stream-cell-label"><span>🇷🇺 Moscow</span><div class="live-indicator">WATCH ⚠</div></div></div>
-        </div>
-        <div class="cam-subsection-hdr">🇨🇳 China — Strategic Competitor</div>
-        <div class="stream-grid">
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/s8oJMUhluEA?autoplay=1','Beijing Tiananmen Live')"><iframe src="https://www.youtube.com/embed/s8oJMUhluEA" loading="lazy" title="Beijing"></iframe><div class="stream-cell-label"><span>🇨🇳 Beijing — Tiananmen</span><div class="live-indicator">WATCH ⚠</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/jCMaYs2rRRg?autoplay=1','Shanghai Live')"><iframe src="https://www.youtube.com/embed/jCMaYs2rRRg" loading="lazy" title="Shanghai"></iframe><div class="stream-cell-label"><span>🇨🇳 Shanghai</span><div class="live-indicator">WATCH ⚠</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCFjf3qeEPPdBHf0Pzd-VTGQ&autoplay=1','Taipei Taiwan Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCFjf3qeEPPdBHf0Pzd-VTGQ" loading="lazy" title="Taipei"></iframe><div class="stream-cell-label"><span>🇹🇼 Taipei — FLASHPOINT</span><div class="live-indicator">ELEVATED ⚠</div></div></div>
-        </div>
-        <div class="cam-subsection-hdr">🇺🇦 Ukraine — Active War Zone</div>
-        <div class="stream-grid">
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCqq_VTHhTEmQaAFwkKLEHpw&autoplay=1','Kyiv Ukraine Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCqq_VTHhTEmQaAFwkKLEHpw" loading="lazy" title="Kyiv"></iframe><div class="stream-cell-label"><span>🇺🇦 Kyiv — Capital</span><div class="live-indicator">WAR ZONE 🔴</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/Ue1TN2-sH4c?autoplay=1','North Korea Intelligence Feed')"><iframe src="https://www.youtube.com/embed/Ue1TN2-sH4c" loading="lazy" title="North Korea"></iframe><div class="stream-cell-label"><span>🇰🇵 N. Korea Intel Feed</span><div class="live-indicator">WATCH ⚠</div></div></div>
-        </div>
-      </div>
-
-      <!-- SPACE -->
-      <div class="cam-cat-panel" id="camp-space">
-        <div class="cam-subsection-hdr">🛸 NASA · SpaceX · Earth Observation</div>
-        <div class="stream-grid">
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw&autoplay=1','NASA ISS Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UC98kzUEPfcHmNbNJVKITmCw" loading="lazy" title="NASA ISS"></iframe><div class="stream-cell-label"><span>🛸 NASA ISS — Live View</span><div class="live-indicator">250mi UP</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ&autoplay=1','NASA TV Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCLA_DiR1FfKNvjuUpBHmylQ" loading="lazy" title="NASA TV"></iframe><div class="stream-cell-label"><span>🚀 NASA TV Official</span><div class="live-indicator">LIVE</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/21X5lGlDOfg?autoplay=1','NASA Earth 4K Live')"><iframe src="https://www.youtube.com/embed/21X5lGlDOfg" loading="lazy" title="Earth 4K"></iframe><div class="stream-cell-label"><span>🌍 Earth from Space 4K</span><div class="live-indicator">NASA</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/l3QQQu7QLoM?autoplay=1','SpaceX Live')"><iframe src="https://www.youtube.com/embed/l3QQQu7QLoM" loading="lazy" title="SpaceX"></iframe><div class="stream-cell-label"><span>🚀 SpaceX Launches</span><div class="live-indicator">SPACEX</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/FNt9e0a1Xac?autoplay=1','Moon Surface 4K')"><iframe src="https://www.youtube.com/embed/FNt9e0a1Xac" loading="lazy" title="Moon"></iframe><div class="stream-cell-label"><span>🌕 Moon — 4K Surface</span><div class="live-indicator">NASA</div></div></div>
-          <div class="stream-cell" onclick="openModal('https://www.youtube.com/embed/live_stream?channel=UCtI0Hodo5o5dUb67FeUjAlg&autoplay=1','Aurora Borealis Live')"><iframe src="https://www.youtube.com/embed/live_stream?channel=UCtI0Hodo5o5dUb67FeUjAlg" loading="lazy" title="Aurora"></iframe><div class="stream-cell-label"><span>💫 Aurora Borealis</span><div class="live-indicator">ARCTIC</div></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- WHITE HOUSE -->
-  <div class="drag-section" id="sec-wh" data-order="2">
-    <div class="section-header draggable">
-      <span class="drag-handle">⠿⠿</span>
-      <span class="sec-eyebrow">// Executive</span>
-      <div>
-        <div class="sec-title">White House Watch</div>
-        <div class="sec-sub">Official U.S. Government Channels</div>
-      </div>
-      <div class="sec-controls">
-        <div class="sec-ctrl" title="Minimize" onclick="toggleSection(this)">▼</div>
-      </div>
-    </div>
-    <div class="section-body" style="padding:12px;">
-      <div class="wh-grid">
-        <a href="https://www.whitehouse.gov/live/" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">📺</span><div><div class="wh-card-label">Live</div><div class="wh-card-title">White House Live Stream</div><div class="wh-card-desc">Official live White House broadcast</div></div></a>
-        <a href="https://www.whitehouse.gov/" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">🏛️</span><div><div class="wh-card-label">Official</div><div class="wh-card-title">WhiteHouse.gov</div><div class="wh-card-desc">Executive orders, press releases</div></div></a>
-        <a href="https://truthsocial.com/@realDonaldTrump" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">💬</span><div><div class="wh-card-label">Direct</div><div class="wh-card-title">President Trump</div><div class="wh-card-desc">Truth Social presidential feed</div></div></a>
-        <a href="https://www.c-span.org/" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">📻</span><div><div class="wh-card-label">Gov TV</div><div class="wh-card-title">C-SPAN Live</div><div class="wh-card-desc">Congress and government in action</div></div></a>
-        <a href="https://www.defense.gov/" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">🪖</span><div><div class="wh-card-label">Military</div><div class="wh-card-title">Pentagon / DoD</div><div class="wh-card-desc">Defense department official releases</div></div></a>
-        <a href="https://www.dhs.gov/" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">🛡</span><div><div class="wh-card-label">Security</div><div class="wh-card-title">DHS</div><div class="wh-card-desc">Border, cyber, infrastructure</div></div></a>
-        <a href="https://www.fbi.gov/" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">🔎</span><div><div class="wh-card-label">Federal</div><div class="wh-card-title">FBI.gov</div><div class="wh-card-desc">Most wanted, investigations</div></div></a>
-        <a href="https://www.cia.gov/stories/news/" target="_blank" rel="noopener" class="wh-card"><span class="wh-card-icon">🕵️</span><div><div class="wh-card-label">Intelligence</div><div class="wh-card-title">CIA Newsroom</div><div class="wh-card-desc">Intelligence community updates</div></div></a>
-      </div>
-    </div>
-  </div>
-
-  <!-- MARKETS -->
-  <div class="drag-section" id="sec-markets" data-order="3">
-    <div class="section-header draggable">
-      <span class="drag-handle">⠿⠿</span>
-      <span class="sec-eyebrow">// Economics</span>
-      <div>
-        <div class="sec-title">Markets &amp; Economy</div>
-        <div class="sec-sub">TradingView · Live Data</div>
-      </div>
-      <div class="sec-controls">
-        <div class="sec-ctrl" title="Minimize" onclick="toggleSection(this)">▼</div>
-      </div>
-    </div>
-    <div class="section-body">
-      <div style="padding:10px;border-bottom:1px solid var(--bdr);">
-        <div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">📊 Global Market Ticker</div>
-        <div class="ticker-frame"><iframe src="https://s.tradingview.com/embed-widget/tickers/?locale=en#%7B%22symbols%22%3A%5B%7B%22proName%22%3A%22FOREXCOM%3ASPXUSD%22%2C%22title%22%3A%22S%26P+500%22%7D%2C%7B%22proName%22%3A%22FOREXCOM%3ANSXUSD%22%2C%22title%22%3A%22US+100%22%7D%2C%7B%22proName%22%3A%22FX_IDC%3AEURUSD%22%2C%22title%22%3A%22EUR%2FUSD%22%7D%2C%7B%22proName%22%3A%22BITSTAMP%3ABTCUSD%22%2C%22title%22%3A%22Bitcoin%22%7D%2C%7B%22proName%22%3A%22BITSTAMP%3AETHUSD%22%2C%22title%22%3A%22Ethereum%22%7D%5D%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22showSymbolLogo%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A76%7D" allowtransparency scrolling="no" allowfullscreen style="width:100%;height:78px;border:none;"></iframe></div>
-      </div>
-      <div class="market-charts">
-        <div class="chart-box"><div class="chart-box-hdr">📈 S&amp;P 500 — Live Chart</div><div class="chart-frame"><iframe src="https://s.tradingview.com/embed-widget/advanced-chart/?locale=en#%7B%22autosize%22%3Atrue%2C%22symbol%22%3A%22SP%3ASPX%22%2C%22interval%22%3A%22D%22%2C%22timezone%22%3A%22America%2FNew_York%22%2C%22theme%22%3A%22dark%22%2C%22style%22%3A%221%22%2C%22withdateranges%22%3Atrue%2C%22allow_symbol_change%22%3Atrue%2C%22support_host%22%3A%22https%3A%2F%2Fwww.tradingview.com%22%7D" allowtransparency scrolling="no" allowfullscreen title="SPX"></iframe></div></div>
-        <div class="chart-box"><div class="chart-box-hdr">🪙 Bitcoin — Live Chart</div><div class="chart-frame"><iframe src="https://s.tradingview.com/embed-widget/advanced-chart/?locale=en#%7B%22autosize%22%3Atrue%2C%22symbol%22%3A%22COINBASE%3ABTCUSD%22%2C%22interval%22%3A%22D%22%2C%22timezone%22%3A%22America%2FNew_York%22%2C%22theme%22%3A%22dark%22%2C%22style%22%3A%221%22%2C%22withdateranges%22%3Atrue%2C%22allow_symbol_change%22%3Atrue%2C%22support_host%22%3A%22https%3A%2F%2Fwww.tradingview.com%22%7D" allowtransparency scrolling="no" allowfullscreen title="BTC"></iframe></div></div>
-      </div>
-      <div style="padding:10px;"><div style="font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">🌡 S&amp;P 500 Sector Heatmap</div><div class="heatmap-frame"><iframe src="https://s.tradingview.com/embed-widget/stock-heatmap/?locale=en#%7B%22exchanges%22%3A%5B%22NASDAQ%22%2C%22NYSE%22%5D%2C%22dataSource%22%3A%22SPX500%22%2C%22grouping%22%3A%22sector%22%2C%22blockSize%22%3A%22market_cap_basic%22%2C%22blockColor%22%3A%22change%22%2C%22colorTheme%22%3A%22dark%22%2C%22hasTopBar%22%3Afalse%2C%22isZoomEnabled%22%3Atrue%2C%22hasSymbolTooltip%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22330%22%7D" allowtransparency scrolling="no" allowfullscreen title="Heatmap"></iframe></div></div>
-    </div>
-  </div>
-
-  <!-- MEDIA WATCH -->
-  <div class="drag-section" id="sec-media" data-order="4">
-    <div class="section-header draggable">
-      <span class="drag-handle">⠿⠿</span>
-      <span class="sec-eyebrow">// Intelligence</span>
-      <div>
-        <div class="sec-title">Media Watch</div>
-        <div class="sec-sub">Know your source — track the narrative</div>
-      </div>
-      <div class="sec-controls">
-        <div class="sec-ctrl" title="Minimize" onclick="toggleSection(this)">▼</div>
-      </div>
-    </div>
-    <div class="section-body">
-      <div class="media-grid">
-        <div class="media-col"><div class="media-col-title" style="color:var(--rb);">Conservative / Right</div>
-          <a href="https://www.foxnews.com/" target="_blank" rel="noopener" class="media-link" style="color:var(--rb)">Fox News</a>
-          <a href="https://www.dailywire.com/" target="_blank" rel="noopener" class="media-link">Daily Wire</a>
-          <a href="https://nypost.com/" target="_blank" rel="noopener" class="media-link">New York Post</a>
-          <a href="https://www.breitbart.com/" target="_blank" rel="noopener" class="media-link">Breitbart</a>
-          <a href="https://www.washingtontimes.com/" target="_blank" rel="noopener" class="media-link">Washington Times</a>
-          <a href="https://www.nationalreview.com/" target="_blank" rel="noopener" class="media-link">National Review</a>
-          <a href="https://www.theblaze.com/" target="_blank" rel="noopener" class="media-link">The Blaze</a>
-          <a href="https://townhall.com/" target="_blank" rel="noopener" class="media-link">Townhall</a>
-          <a href="https://www.newsmax.com/" target="_blank" rel="noopener" class="media-link">Newsmax</a>
-          <a href="https://www.oann.com/" target="_blank" rel="noopener" class="media-link">OAN</a>
-        </div>
-        <div class="media-col"><div class="media-col-title" style="color:var(--bb);">Mainstream / Left</div>
-          <a href="https://www.reuters.com/" target="_blank" rel="noopener" class="media-link" style="color:var(--bb)">Reuters</a>
-          <a href="https://apnews.com/" target="_blank" rel="noopener" class="media-link">AP News</a>
-          <a href="https://www.cnn.com/" target="_blank" rel="noopener" class="media-link">CNN</a>
-          <a href="https://www.msnbc.com/" target="_blank" rel="noopener" class="media-link">MSNBC</a>
-          <a href="https://www.nytimes.com/" target="_blank" rel="noopener" class="media-link">New York Times</a>
-          <a href="https://www.washingtonpost.com/" target="_blank" rel="noopener" class="media-link">Washington Post</a>
-          <a href="https://www.politico.com/" target="_blank" rel="noopener" class="media-link">Politico</a>
-          <a href="https://www.theatlantic.com/" target="_blank" rel="noopener" class="media-link">The Atlantic</a>
-          <a href="https://www.axios.com/" target="_blank" rel="noopener" class="media-link">Axios</a>
-        </div>
-        <div class="media-col"><div class="media-col-title" style="color:var(--cyan);">Financial / Business</div>
-          <a href="https://www.bloomberg.com/" target="_blank" rel="noopener" class="media-link" style="color:var(--cyan)">Bloomberg</a>
-          <a href="https://www.wsj.com/" target="_blank" rel="noopener" class="media-link">Wall Street Journal</a>
-          <a href="https://www.ft.com/" target="_blank" rel="noopener" class="media-link">Financial Times</a>
-          <a href="https://www.cnbc.com/" target="_blank" rel="noopener" class="media-link">CNBC</a>
-          <a href="https://finance.yahoo.com/" target="_blank" rel="noopener" class="media-link">Yahoo Finance</a>
-          <a href="https://www.marketwatch.com/" target="_blank" rel="noopener" class="media-link">MarketWatch</a>
-          <a href="https://www.barrons.com/" target="_blank" rel="noopener" class="media-link">Barron's</a>
-        </div>
-        <div class="media-col"><div class="media-col-title" style="color:var(--amber-l);">OSINT / Global Intel</div>
-          <a href="https://www.bbc.com/news" target="_blank" rel="noopener" class="media-link" style="color:var(--amber-l)">BBC News</a>
-          <a href="https://www.aljazeera.com/" target="_blank" rel="noopener" class="media-link">Al Jazeera</a>
-          <a href="https://www.skynews.com.au/" target="_blank" rel="noopener" class="media-link">Sky News</a>
-          <a href="https://www.dw.com/en/" target="_blank" rel="noopener" class="media-link">Deutsche Welle</a>
-          <a href="https://www.france24.com/en/" target="_blank" rel="noopener" class="media-link">France 24</a>
-          <a href="https://www.bellingcat.com/" target="_blank" rel="noopener" class="media-link">Bellingcat OSINT</a>
-          <a href="https://foreignpolicy.com/" target="_blank" rel="noopener" class="media-link">Foreign Policy</a>
-          <a href="https://www.understandingwar.org/" target="_blank" rel="noopener" class="media-link">ISW War Studies</a>
-          <a href="https://www.stratfor.com/" target="_blank" rel="noopener" class="media-link">Stratfor</a>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /fullpage-sections -->
-
-<!-- FOOTER -->
 <footer id="site-footer">
-  <div class="footer-inner">
-    <div class="footer-grid">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="background:var(--red);color:#fff;font-family:var(--disp);font-size:20px;padding:3px 11px 2px;clip-path:polygon(0 0,100% 0,92% 100%,0 100%);">327</div>
-          <div style="font-family:var(--disp);font-size:14px;letter-spacing:.1em;color:var(--white);">SITUATION ROOM</div>
-        </div>
-        <p class="footer-brand-desc">America's most powerful intelligence dashboard. Live maps, AI briefs, 40+ global cameras, markets, and more. Built for curious Americans — from students to analysts.</p>
-        <p style="margin-top:8px;font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--red);">327media.org</p>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Live Maps</div>
-        <a href="#" onclick="setMap('usmap')">U.S. Situation</a>
-        <a href="#" onclick="setMap('flights')">Live Flights</a>
-        <a href="#" onclick="setMap('ships')">Ship Traffic</a>
-        <a href="#" onclick="setMap('weather')">Weather Radar</a>
-        <a href="#" onclick="setMap('fires')">Wildfire Map</a>
-        <a href="#" onclick="setMap('quakes')">Seismic</a>
-        <a href="#" onclick="setMap('wind')">Wind Map</a>
-        <a href="#" onclick="setMap('hurricanes')">Hurricane Track</a>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Sections</div>
-        <a href="#sec-tv">Live News TV</a>
-        <a href="#sec-cams">Global Webcams</a>
-        <a href="#sec-wh">White House</a>
-        <a href="#sec-markets">Markets</a>
-        <a href="#sec-media">Media Watch</a>
-        <a href="https://327media.org" target="_blank" rel="noopener">327media.org</a>
-      </div>
-      <div class="footer-col">
-        <div class="footer-col-title">Connect</div>
-        <a href="mailto:327mediax@gmail.com">📧 327mediax@gmail.com</a>
-        <a href="https://x.com/327media1" target="_blank" rel="noopener">𝕏 @327Media1</a>
-        <a href="https://www.youtube.com/@ciapodcasttv" target="_blank" rel="noopener">▶ CIA Podcast</a>
-        <a href="https://327media.org" target="_blank" rel="noopener">🌐 327media.org</a>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span class="footer-copy">© 2026 327 Media · Situation Room · Independent · Unfiltered · All Rights Reserved</span>
-      <p class="footer-disc">For informational purposes only. Not affiliated with any government agency. Markets: TradingView. Maps: Google, Windy, USGS, ADS-B Exchange, NASA FIRMS, Vessel Finder, NOAA. All webcam feeds are third-party YouTube embeds and may vary.</p>
-    </div>
-  </div>
+  <div class="footer-grid"><div><div style="display:flex;align-items:center;gap:10px"><div class="logo-badge">327</div><div class="logo-name">SITUATION ROOM</div></div><p class="footer-brand-desc">327 Media intelligence dashboard. Simple mode for friendly browsing, advanced mode for full live monitoring.</p></div><div class="footer-col"><div class="footer-col-title">Maps</div><a href="#" onclick="setMap('usmap')">World Situation</a><a href="#" onclick="setMap('flights')">Live Flights</a><a href="#" onclick="setMap('ships')">Ship Traffic</a><a href="#" onclick="setMap('weather')">Weather</a></div><div class="footer-col"><div class="footer-col-title">Sections</div><a href="#sec-tv">Live TV</a><a href="#sec-cams">Webcams</a><a href="#sec-wh">White House</a><a href="#sec-markets">Markets</a></div><div class="footer-col"><div class="footer-col-title">Connect</div><a href="mailto:327mediax@gmail.com">327mediax@gmail.com</a><a href="https://x.com/327media1" target="_blank">X @327Media1</a><a href="https://327media.org" target="_blank">327media.org</a></div></div>
+  <div class="footer-bottom"><span class="footer-copy">© 2026 327 Media - Situation Room</span><span class="footer-disc">Informational only. Not affiliated with any government agency. Map data uses OpenStreetMap/CARTO and public third-party embeds.</span></div>
 </footer>
 
 <script>
-/* ═══════════════════════════════════════════════════
-   CLOCK
-═══════════════════════════════════════════════════ */
-function tickClock(){
-  document.getElementById('site-clock').textContent =
-    new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour12:false})+' ET';
-}
-tickClock(); setInterval(tickClock,1000);
+const MAP_LABELS={usmap:"WORLD SITUATION MAP",flights:"LIVE FLIGHT TRACKER - ADS-B",ships:"AIS SHIP TRACKING",weather:"WEATHER RADAR",fires:"WILDFIRE MAP",quakes:"SEISMIC MONITOR",wind:"WIND MAP",hurricanes:"HURRICANE TRACK",satellite:"SATELLITE IMAGERY"};
+let currentMap="usmap",srWorldMap,srWorldMapStarted=false,globeStarted=false,globeState={drag:false,lastX:0,lastY:0,rotX:-.25,rotY:.35,zoom:1};
 
-/* ═══════════════════════════════════════════════════
-   SIMPLE / ADVANCED MODE
-═══════════════════════════════════════════════════ */
-function setMode(m){
-  document.body.classList.toggle('simple-mode', m==='simple');
-  document.body.classList.toggle('advanced-mode', m==='advanced');
-  document.getElementById('mode-simple').classList.toggle('on', m==='simple');
-  document.getElementById('mode-adv').classList.toggle('on', m==='advanced');
-  try{localStorage.setItem('sr-mode',m);}catch(e){}
-}
-(function(){try{setMode(localStorage.getItem('sr-mode')||'simple');}catch(e){setMode('simple');}})();
-
-/* ═══════════════════════════════════════════════════
-   SIDEBAR TABS
-═══════════════════════════════════════════════════ */
-function setSideTab(id){
-  const ids=['news','alerts','quakes','intel'];
-  document.querySelectorAll('.sidebar-tab').forEach((t,i)=>t.classList.toggle('on',ids[i]===id));
-  document.querySelectorAll('.sidebar-panel').forEach(p=>p.classList.toggle('on',p.id==='sp-'+id));
-}
-
-/* ═══════════════════════════════════════════════════
-   RIGHT PANEL TABS
-═══════════════════════════════════════════════════ */
-function setRPTab(id){
-  const ids=['wh','ai','tv','cams','risk','media'];
-  document.querySelectorAll('.rp-tab').forEach((t,i)=>t.classList.toggle('on',ids[i]===id));
-  document.querySelectorAll('.rp-panel').forEach(p=>p.classList.toggle('on',p.id==='rp-'+id));
-}
-
-/* ═══════════════════════════════════════════════════
-   MAP SWITCHER
-═══════════════════════════════════════════════════ */
-const MAP_LABELS = {
-  usmap:'U.S. SITUATION MAP — LIVE',
-  flights:'LIVE FLIGHT TRACKER — ADS-B EXCHANGE',
-  ships:'AIS SHIP TRACKING — LIVE',
-  weather:'WEATHER RADAR — WINDY/ECMWF',
-  fires:'WILDFIRE MAP — ESRI/NASA',
-  quakes:'SEISMIC MONITOR — USGS',
-  wind:'WIND MAP — WINDY/ECMWF',
-  hurricanes:'HURRICANE TRACK — NOAA NHC',
-  satellite:'SATELLITE IMAGERY — WINDY',
-};
-let currentMap = 'usmap';
+function tickClock(){document.getElementById("site-clock").textContent=new Date().toLocaleTimeString("en-US",{timeZone:"America/New_York",hour12:false})+" ET"}tickClock();setInterval(tickClock,1000);
+function setMode(m){document.body.classList.toggle("simple-mode",m==="simple");document.body.classList.toggle("advanced-mode",m==="advanced");document.getElementById("mode-simple").classList.toggle("on",m==="simple");document.getElementById("mode-adv").classList.toggle("on",m==="advanced");try{localStorage.setItem("sr-mode",m)}catch(e){}setTimeout(()=>{srWorldMap?.invalidateSize();drawGlobe()},80)}
+(function(){try{setMode(localStorage.getItem("sr-mode")||"advanced")}catch(e){setMode("advanced")}})();
+function setSideTab(id){["news","alerts","quakes","intel"].forEach(x=>{document.getElementById("sp-"+x)?.classList.toggle("on",x===id)});document.querySelectorAll(".sidebar-tab").forEach(t=>t.classList.toggle("on",t.getAttribute("onclick")?.includes("'"+id+"'")))}
+function setRPTab(id){["wh","ai","risk","media"].forEach(x=>{document.getElementById("rp-"+x)?.classList.toggle("on",x===id)});document.querySelectorAll(".rp-tab").forEach(t=>t.classList.toggle("on",t.getAttribute("onclick")?.includes("'"+id+"'")))}
 function setMap(id){
-  currentMap = id;
-  document.querySelectorAll('.map-tab-btn').forEach(t=>{
-    const k = t.getAttribute('onclick')?.match(/setMap\('(\w+)'\)/)?.[1];
-    t.classList.toggle('on', k===id);
-  });
-  document.querySelectorAll('.map-layer').forEach(f=>{
-    f.classList.toggle('on', f.id==='map-'+id);
-    if(f.id==='map-3d-globe') f.style.display='none';
-  });
-  document.getElementById('map-label-text').textContent = (MAP_LABELS[id]||'LIVE MAP')+' — LIVE';
-  document.getElementById('intel-overlay').style.display = id==='usmap'?'block':'none';
-  setView('2d');
-  document.getElementById('center-area')?.scrollIntoView({behavior:'smooth',block:'start'});
+  currentMap=id;document.querySelectorAll(".map-tab-btn").forEach(t=>t.classList.toggle("on",t.getAttribute("onclick")?.includes("'"+id+"'")));
+  document.querySelectorAll(".map-layer").forEach(f=>{f.classList.toggle("on",f.id==="map-"+id);if(f.id==="map-3d-globe")f.classList.remove("on")});
+  document.getElementById("map-label-text").textContent=(MAP_LABELS[id]||"LIVE MAP")+" - LIVE";
+  const isWorld=id==="usmap";document.getElementById("view-3d").classList.toggle("disabled",!isWorld);document.getElementById("view-2d").classList.add("on");document.getElementById("view-3d").classList.remove("on");
+  if(isWorld)setTimeout(()=>srWorldMap?.invalidateSize(),80);document.getElementById("center-area")?.scrollIntoView({behavior:"smooth",block:"start"});
 }
-
-/* ═══════════════════════════════════════════════════
-   2D / 3D VIEW TOGGLE
-═══════════════════════════════════════════════════ */
 function setView(v){
-  document.getElementById('view-2d').classList.toggle('on',v==='2d');
-  document.getElementById('view-3d').classList.toggle('on',v==='3d');
-  const globe = document.getElementById('map-3d-globe');
-  if(v==='3d'){
-    document.querySelectorAll('.map-layer').forEach(f=>{if(f.id!=='map-3d-globe')f.classList.remove('on');});
-    globe.style.display='block'; globe.classList.add('on');
-    document.getElementById('intel-overlay').style.display='none';
-  } else {
-    globe.style.display='none'; globe.classList.remove('on');
-    document.getElementById('map-'+currentMap)?.classList.add('on');
-    document.getElementById('intel-overlay').style.display = currentMap==='usmap'?'block':'none';
-  }
+  if(v==="3d"&&currentMap!=="usmap")return;document.getElementById("view-2d").classList.toggle("on",v==="2d");document.getElementById("view-3d").classList.toggle("on",v==="3d");
+  if(v==="3d"){document.querySelectorAll(".map-layer").forEach(f=>f.classList.remove("on"));document.getElementById("map-3d-globe").classList.add("on");document.getElementById("map-label-text").textContent="WORLD 3D ALERT GLOBE - LIVE";startGlobe();drawGlobe()}
+  else{document.querySelectorAll(".map-layer").forEach(f=>f.classList.remove("on"));document.getElementById("map-"+currentMap)?.classList.add("on");document.getElementById("map-label-text").textContent=(MAP_LABELS[currentMap]||"LIVE MAP")+" - LIVE";setTimeout(()=>srWorldMap?.invalidateSize(),80)}
 }
+function openModal(src,title){document.getElementById("modal-iframe").src=src;document.getElementById("modal-title").textContent=title||"LIVE FEED";document.getElementById("modal-overlay").classList.add("on");document.body.style.overflow="hidden"}
+function closeModal(){document.getElementById("modal-overlay").classList.remove("on");document.getElementById("modal-iframe").src="";document.body.style.overflow=""}document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
 
-/* ═══════════════════════════════════════════════════
-   CAM CATEGORY
-═══════════════════════════════════════════════════ */
-function setCamCat(id){
-  document.querySelectorAll('.cam-cat-tab').forEach(t=>{
-    const k=t.getAttribute('onclick')?.match(/setCamCat\('(\w+)'\)/)?.[1];
-    t.classList.toggle('on',k===id);
-  });
-  document.querySelectorAll('.cam-cat-panel').forEach(p=>p.classList.toggle('on',p.id==='camp-'+id));
-}
-
-/* ═══════════════════════════════════════════════════
-   MODAL
-═══════════════════════════════════════════════════ */
-function openModal(src, title){
-  document.getElementById('modal-iframe').src = src;
-  document.getElementById('modal-title').textContent = title || 'LIVE FEED';
-  document.getElementById('modal-overlay').classList.add('on');
-  document.body.style.overflow = 'hidden';
-}
-function closeModal(){
-  document.getElementById('modal-overlay').classList.remove('on');
-  document.getElementById('modal-iframe').src = '';
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
-
-/* ═══════════════════════════════════════════════════
-   SECTION MINIMIZE
-═══════════════════════════════════════════════════ */
-function toggleSection(btn){
-  const sec = btn.closest('.drag-section');
-  const min = sec.classList.toggle('minimized');
-  btn.textContent = min ? '▶' : '▼';
-  btn.title = min ? 'Expand' : 'Minimize';
-  saveLayout();
-}
-
-/* ═══════════════════════════════════════════════════
-   CUSTOMIZE / DRAG & DROP
-═══════════════════════════════════════════════════ */
-let customizeActive = false;
-let dragSrc = null;
-
-function toggleCustomize(){
-  customizeActive = !customizeActive;
-  document.getElementById('cust-btn').classList.toggle('on', customizeActive);
-  document.getElementById('customize-bar').classList.toggle('on', customizeActive);
-  document.body.classList.toggle('customize-mode', customizeActive);
-  customizeActive ? initDrag() : removeDrag();
-}
-
-function initDrag(){
-  document.querySelectorAll('.drag-section').forEach(sec=>{
-    const hdr = sec.querySelector('.section-header');
-    hdr.draggable = true;
-    hdr.addEventListener('dragstart', onDS);
-    hdr.addEventListener('dragend', onDE);
-    sec.addEventListener('dragover', onDO);
-    sec.addEventListener('dragleave', onDL);
-    sec.addEventListener('drop', onDP);
-  });
-}
-function removeDrag(){
-  document.querySelectorAll('.drag-section').forEach(sec=>{
-    const hdr = sec.querySelector('.section-header');
-    hdr.draggable = false;
-    hdr.removeEventListener('dragstart', onDS);
-    hdr.removeEventListener('dragend', onDE);
-    sec.removeEventListener('dragover', onDO);
-    sec.removeEventListener('dragleave', onDL);
-    sec.removeEventListener('drop', onDP);
-  });
-}
-function onDS(e){ dragSrc = this.closest('.drag-section'); dragSrc.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; }
-function onDE(){ document.querySelectorAll('.drag-section').forEach(s=>s.classList.remove('dragging','drag-over')); dragSrc=null; }
-function onDO(e){ e.preventDefault(); if(this!==dragSrc) this.classList.add('drag-over'); }
-function onDL(){ this.classList.remove('drag-over'); }
-function onDP(e){
-  e.preventDefault(); this.classList.remove('drag-over');
-  if(dragSrc && dragSrc!==this){
-    const secs = [...document.querySelectorAll('.drag-section')];
-    secs.indexOf(dragSrc) < secs.indexOf(this) ? this.after(dragSrc) : this.before(dragSrc);
-    saveLayout();
-  }
-}
-function saveLayout(){
-  try{
-    const order = [...document.querySelectorAll('.drag-section')].map(s=>s.id);
-    const mins = [...document.querySelectorAll('.drag-section.minimized')].map(s=>s.id);
-    localStorage.setItem('sr-order', JSON.stringify(order));
-    localStorage.setItem('sr-mins', JSON.stringify(mins));
-  }catch(e){}
-}
-function loadLayout(){
-  try{
-    const order = JSON.parse(localStorage.getItem('sr-order')||'null');
-    const mins = JSON.parse(localStorage.getItem('sr-mins')||'[]');
-    if(order?.length){
-      const fp = document.getElementById('fullpage-sections');
-      order.forEach(id=>{ const el=document.getElementById(id); if(el) fp.appendChild(el); });
-    }
-    mins.forEach(id=>{
-      const el=document.getElementById(id); if(!el) return;
-      el.classList.add('minimized');
-      const btn=el.querySelector('.sec-ctrl'); if(btn){btn.textContent='▶';btn.title='Expand';}
-    });
-  }catch(e){}
-}
-function resetLayout(){ try{localStorage.removeItem('sr-order');localStorage.removeItem('sr-mins');}catch(e){} location.reload(); }
-loadLayout();
-
-/* ═══════════════════════════════════════════════════
-   AI INTEL REFRESH (simulated)
-═══════════════════════════════════════════════════ */
-const AI_CONTENT = {
-  posture:[
-    "U.S. military posture remains at <strong>ELEVATED</strong> readiness. Pacific Command is the primary theater of concern with PLA activities in the Taiwan Strait reaching a 5-year high. EUCOM is reinforcing the eastern NATO flank with pre-positioned equipment. CENTCOM is managing Yemen Houthi threats to Red Sea shipping lanes. <strong>Recommend: prioritize Taiwan Strait and Houthi monitoring.</strong>",
-    "DoD has repositioned two carrier strike groups: <strong>USS Nimitz to the Western Pacific</strong> and USS Ford to the Mediterranean. Air Force Global Strike Command has increased B-52 patrol frequency over the Arctic. Russia's military activity near the Finland border remains elevated post-NATO accession. <strong>Key watch: any Chinese coast guard action within Taiwan's 24nm zone.</strong>",
-  ],
-  econ:[
-    "The Fed is navigating a <strong>soft landing scenario</strong>. PCE inflation remains above target but trending down. Labor market showing early signs of softening — JOLTS openings dropped for 3rd consecutive month. <strong>Risk: commercial real estate stress could trigger regional bank contagion in H2.</strong> Dollar DXY is at a 3-month high — watch EM currency stress.",
-    "Markets are in a <strong>risk-on mood</strong> driven by AI sector momentum. However, defensive positioning is building in bonds as geopolitical risk premiums rise. Oil prices are tracking the Hamas conflict closely — a wider Middle East war scenario would likely send crude to $100+. <strong>Key watch: OPEC+ production decision and Fed meeting minutes.</strong>",
-  ],
-  daily:[
-    "<strong>Today's Top Signals:</strong> Russian drone strikes on Odesa infrastructure overnight; IDF announced ground operation in northern Gaza; Senate vote on $95B Ukraine-Israel aid failed cloture — watch for procedural vote; BTC ETF net inflows hit $600M — highest since March; Xi-Putin joint statement on 'new security architecture' raises NATO alarm. <strong>Elevated monitoring advised.</strong>",
-    "<strong>Breaking Intel:</strong> North Korea tested a solid-fuel ICBM engine at Sohae; Iranian Revolutionary Guard conducted naval exercises near Strait of Hormuz; House passed Taiwan defense authorization bill 357-61; Fed's Waller signaled patience on rate cuts — markets sold off; Colombian cocaine interdiction operation — 18 tons seized. <strong>Watch the DPRK trajectory closely.</strong>",
-  ],
-  forecast:[
-    "<strong>72-Hour Outlook:</strong> (HIGH) Congressional debt limit vote — expect market volatility. (HIGH) IDF ground phase in Gaza may intensify — civilian corridor announcements imminent. (MEDIUM) PLA Taiwan exercises may resume post-CCP plenum. (MEDIUM) Hurricane activity tracking 2 disturbances in Atlantic — 72hr window critical. (LOW) NK satellite launch window opens — debris tracking active.",
-    "<strong>Strategic Forecast:</strong> Probability of U.S.-China direct confrontation remains at 8% — unchanged. Ukraine conflict likely to persist 18+ months without major territorial shifts. Iran nuclear talks deadline approaches — Mossad intelligence suggests enrichment at 84%. U.S. economy: 65% probability of soft landing, 25% mild recession, 10% hard landing. <strong>AI confidence: 78%</strong>",
-  ]
-};
-function refreshAI(key){
-  const el=document.getElementById('ai-'+key);
-  const sp=document.getElementById('sp-'+key);
-  if(!el||!sp) return;
-  sp.classList.add('on'); el.style.opacity='.4';
-  setTimeout(()=>{
-    const pool=AI_CONTENT[key];
-    el.innerHTML=pool[Math.floor(Math.random()*pool.length)];
-    el.style.opacity='1'; sp.classList.remove('on');
-  }, 900);
-}
-
-/* ═══════════════════════════════════════════════════
-   RISK INDEX
-═══════════════════════════════════════════════════ */
-const RISKS = [
-  {n:'Ukraine',f:'🇺🇦',s:94,c:'#ff2828'},{n:'Gaza/Israel',f:'🇮🇱🇵🇸',s:91,c:'#ff2828'},
-  {n:'Taiwan',f:'🇹🇼',s:87,c:'#ff6b35'},{n:'North Korea',f:'🇰🇵',s:84,c:'#ff6b35'},
-  {n:'Iran',f:'🇮🇷',s:82,c:'#ffa500'},{n:'Yemen',f:'🇾🇪',s:79,c:'#ffa500'},
-  {n:'Sudan',f:'🇸🇩',s:76,c:'#ffa500'},{n:'Syria',f:'🇸🇾',s:68,c:'#e0c700'},
-  {n:'Venezuela',f:'🇻🇪',s:64,c:'#e0c700'},{n:'Myanmar',f:'🇲🇲',s:61,c:'#e0c700'},
-  {n:'Russia',f:'🇷🇺',s:58,c:'#a0a000'},{n:'China',f:'🇨🇳',s:54,c:'#a0a000'},
-  {n:'Pakistan',f:'🇵🇰',s:51,c:'#a0a000'},{n:'Ethiopia',f:'🇪🇹',s:47,c:'#608000'},
-  {n:'Haiti',f:'🇭🇹',s:44,c:'#608000'},
+const POINTS=[
+["Ukraine - Active War Zone",49,31,"red"],["Gaza / Israel - Active Conflict",31.5,34.5,"red"],["Sudan - Civil War Ongoing",15.5,30.2,"red"],["Yemen - Houthi Conflict Zone",15.5,47.5,"red"],["Mali / Sahel - Conflict Zone",17.6,-3.9,"red"],["Myanmar - Civil War",21.9,96,"red"],
+["Taiwan Strait - Flashpoint",24,121,"amber"],["Iran - Nuclear / Regional Watch",32.4,53.7,"amber"],["North Korea - ICBM Watch",40,127,"amber"],["Venezuela - Political Crisis",7,-66,"amber"],["South China Sea - Patrol Watch",13,114,"amber"],
+["Naval Station Norfolk - U.S. Base",36.95,-76.32,"blue"],["Ramstein AB - Germany",49.44,7.6,"blue"],["Al Udeid AB - Qatar",25.12,51.31,"blue"],["Kadena AB - Japan",26.36,127.77,"blue"],["5th Fleet - Bahrain",26.21,50.58,"blue"],
+["United Kingdom - NATO Ally",54.7,-2.5,"green"],["Poland - NATO Eastern Flank",52.1,19.4,"green"],["Japan - U.S. Ally",36.2,138.2,"green"],["South Korea - U.S. Ally",36.4,127.8,"green"],["Australia - AUKUS Ally",-25.3,133.8,"green"],
+["Natanz - Iran Nuclear Facility",33.72,51.73,"purple"],["Yongbyon - North Korea Nuclear Site",39.8,125.75,"purple"],["Severodvinsk - Russia Nuclear Watch",64.56,39.82,"purple"],["Black Sea Fleet Watch",44.8,35.3,"cyan"]
 ];
-document.getElementById('risk-list').innerHTML = RISKS.map(r=>`
-  <div class="risk-country">
-    <span class="risk-flag">${r.f}</span>
-    <span class="risk-name">${r.n}</span>
-    <div class="risk-bar-wrap"><div class="risk-bar" style="width:${r.s}%;background:${r.c}"></div></div>
-    <span class="risk-score" style="color:${r.c}">${r.s}</span>
-  </div>`).join('');
+const RED_COUNTRIES=["Ukraine","Iran","Israel","Palestine","Sudan","Yemen","Mali","Myanmar"];
+function startWorldMap(){
+  if(srWorldMapStarted||!window.L)return;srWorldMapStarted=true;
+  srWorldMap=L.map("world-map",{zoomControl:true,worldCopyJump:true,minZoom:2,maxZoom:8}).setView([22,12],2);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"&copy; OpenStreetMap &copy; CARTO",subdomains:"abcd",maxZoom:19}).addTo(srWorldMap);
+  POINTS.forEach(([name,lat,lon,type])=>{const icon=L.divIcon({className:"",html:`<div class="intel-marker ${type}"></div>`,iconSize:[18,18],iconAnchor:[9,9]});L.marker([lat,lon],{icon}).addTo(srWorldMap).bindPopup(name)});
+  fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson").then(r=>r.json()).then(geo=>{L.geoJSON(geo,{filter:f=>RED_COUNTRIES.includes(f.properties.ADMIN),style:{color:"#ff5050",weight:1.2,fillColor:"#ff2828",fillOpacity:.38},onEachFeature:(feature,layer)=>layer.bindPopup(feature.properties.ADMIN+" - War Zone / Critical Alert")}).addTo(srWorldMap)}).catch(()=>{});
+  setTimeout(()=>srWorldMap.invalidateSize(),120);
+}
+function latLonTo3d(lat,lon,r){const phi=(90-lat)*Math.PI/180,theta=(lon+180)*Math.PI/180;return{x:-(r*Math.sin(phi)*Math.cos(theta)),y:r*Math.cos(phi),z:r*Math.sin(phi)*Math.sin(theta)}}
+function rotate(p){let{x,y,z}=p,cy=Math.cos(globeState.rotY),sy=Math.sin(globeState.rotY),cx=Math.cos(globeState.rotX),sx=Math.sin(globeState.rotX);let x1=x*cy-z*sy,z1=x*sy+z*cy,y1=y;let y2=y1*cx-z1*sx,z2=y1*sx+z1*cx;return{x:x1,y:y2,z:z2}}
+function startGlobe(){
+  if(globeStarted)return;globeStarted=true;const host=document.getElementById("world-3d"),canvas=document.createElement("canvas");host.innerHTML="";host.appendChild(canvas);host.canvas=canvas;
+  canvas.addEventListener("mousedown",e=>{globeState.drag=true;globeState.lastX=e.clientX;globeState.lastY=e.clientY});window.addEventListener("mouseup",()=>globeState.drag=false);window.addEventListener("mousemove",e=>{if(!globeState.drag)return;globeState.rotY+=(e.clientX-globeState.lastX)*.008;globeState.rotX+=(e.clientY-globeState.lastY)*.008;globeState.lastX=e.clientX;globeState.lastY=e.clientY;drawGlobe()});canvas.addEventListener("wheel",e=>{e.preventDefault();globeState.zoom=Math.max(.72,Math.min(1.55,globeState.zoom+(e.deltaY<0?.08:-.08)));drawGlobe()},{passive:false});
+}
+function drawGlobe(){
+  const canvas=document.getElementById("world-3d")?.canvas;if(!canvas)return;const rect=canvas.parentElement.getBoundingClientRect(),dpr=window.devicePixelRatio||1;canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;canvas.style.width=rect.width+"px";canvas.style.height=rect.height+"px";const ctx=canvas.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);const w=rect.width,h=rect.height,cx=w/2,cy=h/2,r=Math.min(w,h)*.33*globeState.zoom;
+  ctx.clearRect(0,0,w,h);let grad=ctx.createRadialGradient(cx-r*.3,cy-r*.35,r*.1,cx,cy,r);grad.addColorStop(0,"#17365d");grad.addColorStop(.65,"#071827");grad.addColorStop(1,"#02050a");ctx.fillStyle=grad;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle="rgba(75,142,248,.35)";ctx.lineWidth=1;
+  for(let i=-60;i<=60;i+=30){ctx.beginPath();ctx.ellipse(cx,cy,r*Math.cos(i*Math.PI/180),r*.18,0,0,Math.PI*2);ctx.stroke()}for(let i=0;i<360;i+=30){ctx.beginPath();ctx.moveTo(cx,cy-r);ctx.quadraticCurveTo(cx+Math.sin(i)*r*.35,cy,cx,cy+r);ctx.stroke()}
+  POINTS.forEach(([name,lat,lon,type])=>{let p=rotate(latLonTo3d(lat,lon,r));if(p.z<0)return;let scale=1+p.z/(r*3),x=cx+p.x*scale,y=cy-p.y*scale;ctx.beginPath();ctx.fillStyle={red:"#ff2828",amber:"#ffa500",blue:"#4b8ef8",green:"#1fcc5a",purple:"#8b5cf6",cyan:"#00c4d4"}[type]||"#fff";ctx.shadowColor=ctx.fillStyle;ctx.shadowBlur=14;ctx.arc(x,y,type==="red"?5:4,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0});
+}
+window.addEventListener("resize",()=>{srWorldMap?.invalidateSize();drawGlobe()});
+window.addEventListener("load",()=>{startWorldMap();setMap("usmap")});
 
-/* ═══════════════════════════════════════════════════
-   USGS EARTHQUAKES
-═══════════════════════════════════════════════════ */
-function timeAgo(ms){
-  const d=Math.floor((Date.now()-ms)/60000);
-  if(d<1)return'now';if(d<60)return d+'m ago';if(d<1440)return Math.floor(d/60)+'h ago';return Math.floor(d/1440)+'d ago';
-}
-async function loadQuakes(){
-  try{
-    const r=await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.5_day.geojson');
-    const d=await r.json();
-    const qEl=document.getElementById('dc-quakes');
-    if(qEl)qEl.textContent=d.features.length;
-    const list=document.getElementById('quake-list');
-    if(list)list.innerHTML=d.features.slice(0,25).map(q=>{
-      const m=parseFloat(q.properties.mag||0).toFixed(1);
-      const cls=m>=6?'qm-l':m>=4?'qm-m':'qm-s';
-      return`<div class="quake-item"><div class="quake-mag ${cls}">M${m}</div><div><div class="quake-loc">${q.properties.place||'Unknown'}</div><div class="quake-time">${timeAgo(q.properties.time)}</div></div></div>`;
-    }).join('');
-  }catch(e){}
-}
-loadQuakes();
-
-/* ═══════════════════════════════════════════════════
-   NWS WEATHER ALERTS
-═══════════════════════════════════════════════════ */
-async function loadWX(){
-  try{
-    const r=await fetch('https://api.weather.gov/alerts/active/count');
-    const d=await r.json();
-    const el=document.getElementById('dc-wx');
-    if(el)el.textContent=(d.total||'—').toLocaleString();
-  }catch(e){}
-}
-loadWX();
-
-/* ═══════════════════════════════════════════════════
-   LIVE NEWS RSS
-═══════════════════════════════════════════════════ */
-function newsHTML(items){
-  if(!items.length) return '<div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted);">Feeds temporarily unavailable</div>';
-  return items.map(i=>`
-    <div class="news-item">
-      <div class="news-meta"><span class="news-tag ${i.cls}">${i.tag}</span><span class="news-time">${timeAgo(new Date(i.pub))}</span></div>
-      <a class="news-headline" href="${i.link}" target="_blank" rel="noopener">${i.title}</a>
-      <div class="news-source">${i.src}</div>
-    </div>`).join('');
-}
-const FEEDS_A=[
-  {url:'https://feeds.foxnews.com/foxnews/national',src:'Fox News',tag:'Politics',cls:'tag-r'},
-  {url:'https://nypost.com/feed/',src:'NY Post',tag:'Breaking',cls:'tag-a'},
-  {url:'https://www.breitbart.com/feed/',src:'Breitbart',tag:'National',cls:'tag-r'},
-];
-const FEEDS_B=[
-  {url:'https://feeds.npr.org/1001/rss.xml',src:'NPR',tag:'News',cls:'tag-g'},
-  {url:'https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml',src:'NYT Politics',tag:'Politics',cls:'tag-b'},
-  {url:'https://www.politico.com/rss/politics08.xml',src:'Politico',tag:'Congress',cls:'tag-b'},
-];
-async function loadFeed(feeds,elId,max){
-  const el=document.getElementById(elId); let all=[];
-  for(const f of feeds){
-    try{
-      const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(f.url));
-      const d=await r.json();
-      const xml=new DOMParser().parseFromString(d.contents,'text/xml');
-      Array.from(xml.querySelectorAll('item')).slice(0,7).forEach(item=>{
-        let lnk=item.querySelector('link')?.textContent?.trim()||'#';
-        if(!lnk||lnk==='')lnk=item.querySelector('link')?.nextSibling?.textContent?.trim()||'#';
-        all.push({title:item.querySelector('title')?.textContent||'',link:lnk,pub:item.querySelector('pubDate')?.textContent||'',src:f.src,tag:f.tag,cls:f.cls});
-      });
-    }catch(e){}
-  }
-  all.sort((a,b)=>new Date(b.pub)-new Date(a.pub));
-  if(el) el.innerHTML=newsHTML(all.slice(0,max));
-}
-loadFeed(FEEDS_A,'news-main-feed',14);
-loadFeed(FEEDS_B,'news-sec-feed',12);
-
-/* ═══════════════════════════════════════════════════
-   MARKET DATA
-═══════════════════════════════════════════════════ */
-async function loadMarkets(){
-  try{
-    const syms=['%5EDJI','%5EGSPC','%5EIXIC','BTC-USD','ETH-USD','CL%3DF','GC%3DF','%5ETNX','EURUSD%3DX','NG%3DF'];
-    const url='https://query1.finance.yahoo.com/v7/finance/quote?symbols='+syms.join(',');
-    const r=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url));
-    const d=await r.json();
-    const res=JSON.parse(d.contents)?.quoteResponse?.result||[];
-    const MAP={
-      '^DJI':['m-dow','m-dow-c'],'^GSPC':['m-sp','m-sp-c'],'^IXIC':['m-nq','m-nq-c'],
-      'BTC-USD':['m-btc','m-btc-c'],'ETH-USD':['m-eth','m-eth-c'],
-      'CL=F':['m-oil','m-oil-c'],'GC=F':['m-gold','m-gold-c'],
-      '^TNX':['m-10y','m-10y-c'],'EURUSD=X':['m-fx','m-fx-c'],'NG=F':['m-gas','m-gas-c']
-    };
-    res.forEach(q=>{
-      const m=MAP[q.symbol]; if(!m)return;
-      const p=q.regularMarketPrice, c=q.regularMarketChangePercent;
-      const fmt=['BTC-USD','ETH-USD','GC=F'].includes(q.symbol)?'$'+p.toLocaleString('en-US',{maximumFractionDigits:0}):
-        ['CL=F','NG=F'].includes(q.symbol)?'$'+p.toFixed(2):
-        q.symbol==='^TNX'?p.toFixed(3)+'%':q.symbol==='EURUSD=X'?p.toFixed(4):
-        p.toLocaleString('en-US',{maximumFractionDigits:0});
-      const ve=document.getElementById(m[0]),ce=document.getElementById(m[1]);
-      if(ve)ve.textContent=fmt;
-      if(ce){ce.textContent=(c>=0?'+':'')+c.toFixed(2)+'%';ce.className='mchip-chg '+(c>0?'up':c<0?'dn':'fl');}
-    });
-  }catch(e){}
-}
-loadMarkets(); setInterval(loadMarkets,60000);
+function timeAgo(ms){const d=Math.floor((Date.now()-ms)/60000);if(d<1)return"now";if(d<60)return d+"m ago";if(d<1440)return Math.floor(d/60)+"h ago";return Math.floor(d/1440)+"d ago"}
+async function loadQuakes(){try{const r=await fetch("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.5_day.geojson"),d=await r.json();document.getElementById("dc-quakes").textContent=d.features.length;document.getElementById("quake-list").innerHTML=d.features.slice(0,20).map(q=>`<div class="alert-item"><div class="alert-dot ad-cyan"></div><div><div class="alert-title">M${Number(q.properties.mag||0).toFixed(1)} - ${q.properties.place||"Unknown"}</div><div class="alert-meta">${timeAgo(q.properties.time)}</div></div></div>`).join("")}catch(e){}}
+async function loadWX(){try{const r=await fetch("https://api.weather.gov/alerts/active/count"),d=await r.json();document.getElementById("dc-wx").textContent=(d.total||"--").toLocaleString()}catch(e){}}
+function newsHTML(items){return items.length?items.map(i=>`<div class="news-item"><div class="news-meta"><span class="news-tag ${i.cls}">${i.tag}</span><span class="news-time">${i.pub?timeAgo(new Date(i.pub)):"live"}</span></div><a class="news-headline" href="${i.link}" target="_blank" rel="noopener">${i.title}</a><div class="news-source">${i.src}</div></div>`).join(""):`<div style="padding:14px;font-family:var(--mono);font-size:9px;color:var(--muted)">Feeds temporarily unavailable</div>`}
+async function loadFeed(feeds,elId,max){const el=document.getElementById(elId);let all=[];for(const f of feeds){try{const r=await fetch("https://api.allorigins.win/get?url="+encodeURIComponent(f.url)),d=await r.json(),xml=new DOMParser().parseFromString(d.contents,"text/xml");[...xml.querySelectorAll("item")].slice(0,7).forEach(item=>all.push({title:item.querySelector("title")?.textContent||"",link:item.querySelector("link")?.textContent?.trim()||"#",pub:item.querySelector("pubDate")?.textContent||"",src:f.src,tag:f.tag,cls:f.cls}))}catch(e){}}all.sort((a,b)=>new Date(b.pub)-new Date(a.pub));if(el)el.innerHTML=newsHTML(all.slice(0,max))}
+loadQuakes();loadWX();loadFeed([{url:"https://feeds.foxnews.com/foxnews/national",src:"Fox News",tag:"Politics",cls:"tag-r"},{url:"https://nypost.com/feed/",src:"NY Post",tag:"Breaking",cls:"tag-a"}],"news-main-feed",12);loadFeed([{url:"https://feeds.npr.org/1001/rss.xml",src:"NPR",tag:"News",cls:"tag-g"},{url:"https://rss.nytimes.com/services/xml/rss/nyt/World.xml",src:"NYT World",tag:"World",cls:"tag-b"}],"news-sec-feed",12);
+const RISKS=[["Ukraine","UA",94,"#ff2828"],["Gaza/Israel","IL/PS",91,"#ff2828"],["Sudan","SD",88,"#ff2828"],["Yemen","YE",84,"#ff6b35"],["Taiwan","TW",82,"#ffa500"],["Iran","IR",80,"#ffa500"],["North Korea","KP",78,"#ffa500"],["Myanmar","MM",74,"#ffa500"],["Venezuela","VE",64,"#e0c700"],["China","CN",54,"#a0a000"]];document.getElementById("risk-list").innerHTML=RISKS.map(r=>`<div class="risk-country"><span class="risk-flag">${r[1]}</span><span class="risk-name">${r[0]}</span><div class="risk-bar-wrap"><div class="risk-bar" style="width:${r[2]}%;background:${r[3]}"></div></div><span class="risk-score" style="color:${r[3]}">${r[2]}</span></div>`).join("");
+const AI_CONTENT={posture:["Global posture remains <strong>elevated</strong>. Ukraine and Gaza/Israel remain red-zone conflicts. Taiwan Strait, Iran, and North Korea remain high-alert flashpoints.","Priority watch: Taiwan Strait naval activity, Houthi Red Sea threats, Iranian proxy activity, and Russian attacks on Ukrainian infrastructure."],econ:["Markets are watching oil, yields, gold, and dollar strength. Geopolitical risk can push energy and safe-haven assets higher.","If free market APIs are blocked, the strip falls back cleanly while the TradingView widgets remain available below."]};
+function refreshAI(key){const el=document.getElementById("ai-"+key),sp=document.getElementById("sp-"+key);if(!el||!sp)return;sp.classList.add("on");el.style.opacity=".45";setTimeout(()=>{const pool=AI_CONTENT[key];el.innerHTML=pool[Math.floor(Math.random()*pool.length)];el.style.opacity="1";sp.classList.remove("on")},700)}
+async function loadMarkets(){const fallback={"m-dow":["Live","--"],"m-sp":["Live","--"],"m-nq":["Live","--"],"m-btc":["Live","--"],"m-eth":["Live","--"],"m-oil":["Live","--"],"m-gold":["Live","--"],"m-10y":["Live","--"],"m-fx":["Live","--"],"m-gas":["Live","--"]};try{const syms=["%5EDJI","%5EGSPC","%5EIXIC","BTC-USD","ETH-USD","CL%3DF","GC%3DF","%5ETNX","EURUSD%3DX","NG%3DF"],url="https://query1.finance.yahoo.com/v7/finance/quote?symbols="+syms.join(","),r=await fetch("https://api.allorigins.win/get?url="+encodeURIComponent(url)),d=await r.json(),res=JSON.parse(d.contents)?.quoteResponse?.result||[],map={"^DJI":["m-dow","m-dow-c"],"^GSPC":["m-sp","m-sp-c"],"^IXIC":["m-nq","m-nq-c"],"BTC-USD":["m-btc","m-btc-c"],"ETH-USD":["m-eth","m-eth-c"],"CL=F":["m-oil","m-oil-c"],"GC=F":["m-gold","m-gold-c"],"^TNX":["m-10y","m-10y-c"],"EURUSD=X":["m-fx","m-fx-c"],"NG=F":["m-gas","m-gas-c"]};if(!res.length)throw new Error("empty");res.forEach(q=>{const m=map[q.symbol];if(!m||!q.regularMarketPrice)return;const p=q.regularMarketPrice,c=q.regularMarketChangePercent||0,fmt=["BTC-USD","ETH-USD","GC=F"].includes(q.symbol)?"$"+p.toLocaleString("en-US",{maximumFractionDigits:0}):["CL=F","NG=F"].includes(q.symbol)?"$"+p.toFixed(2):q.symbol==="^TNX"?p.toFixed(3)+"%":q.symbol==="EURUSD=X"?p.toFixed(4):p.toLocaleString("en-US",{maximumFractionDigits:0});document.getElementById(m[0]).textContent=fmt;const ce=document.getElementById(m[1]);ce.textContent=(c>=0?"+":"")+c.toFixed(2)+"%";ce.className="mchip-chg "+(c>0?"up":c<0?"dn":"fl")})}catch(e){Object.entries(fallback).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.textContent=v[0]})}}
+loadMarkets();setInterval(loadMarkets,60000);
 </script>
 </body>
 </html>
